@@ -14,5 +14,11 @@ def create_app():
     # Import and register Blueprints here
     from app.routes.home import home_bp
     app.register_blueprint(home_bp)
+    from app.routes.supplies import supplies_bp
+    app.register_blueprint(supplies_bp)
+    from app.routes.attendance import attendance_bp
+    app.register_blueprint(attendance_bp)
+    from app.routes.snowlog import snowlog_bp
+    app.register_blueprint(snowlog_bp)
 
     return app

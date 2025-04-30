@@ -2,12 +2,51 @@
 
 echotask-backend/
 │
-├── app/
+├── app/ # A folder to organize backend server code (Flask)
 │ ├── **init**.py
 │ ├── models/ # Database models
 │ ├── routes/ # API routes (Blueprints)
 │ ├── services/ # Business logic if needed
 │ ├── schemas/ # (Optional) for request/response validation
+│
+├── src/ # A "source" code folder for React components, pages, CSS, utilities
+│ ├── components/ # reusable components
+│   ├── SearchBar.jsx
+│   ├── CategoryAccordion.jsx
+│   ├── SupplyItem.jsx
+│   ├── SummaryPanel.jsx
+│
+│ ├── pages/ # full pages
+│   ├── SuppliesRequestPage.jsx
+│
+│ ├── App.js # main app entry
+│ ├── index.js # React root
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+src/
+├── components/          (reusable components)
+│   ├── SearchBar.jsx
+│   ├── CategoryAccordion.jsx
+│   ├── SupplyItem.jsx
+│   ├── SummaryPanel.jsx
+│
+├── pages/                (full pages)
+│   ├── SuppliesRequestPage.jsx
+│
+├── App.js                (main app entry)
+├── index.js              (React root)
 │
 ├── instance/ # For SQLite DB and instance-specific config
 │ └── echotask.db
