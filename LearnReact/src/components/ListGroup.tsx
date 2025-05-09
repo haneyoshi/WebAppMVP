@@ -11,7 +11,7 @@ function ListGroup({items, heading, onSelectItem}: ListGroupProps) {
     const checkEmpty = () => {
         items.length == 0 && <p>no items found</p>;
         //In JavaScript "&&" works as:
-        // true && "when first statement is true"=> when first statement is true
+        // true && "when first statement is true"=> render <p>
         // false && "never print, since first statement is false => false (does nothing)
     };
     const [selectedIndex, setSelectedIndex] = useState(-1);

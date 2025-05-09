@@ -12,7 +12,7 @@ function SearchBar({searchTerm, onSearchChange}){
             onChange={(e) => onSearchChange(e.target.value)}
             //e.target.value: The actual text the user typed
             style={{
-                width: '100%',
+                width: '95%',
                 padding: '10px',
                 fontSize: '16px',
                 borderRadius: '8px',
