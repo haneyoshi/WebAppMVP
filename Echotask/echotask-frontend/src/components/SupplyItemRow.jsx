@@ -1,12 +1,12 @@
 // components/SupplyItemRow.jsx
 import React, { useState } from "react";
 
-function SupplyItemRow({ itemName }) {
-  const [quantity, setQuantity] = useState(0); // initial quantity
+function SupplyItemRow({ itemName, quantity, onQuantityChange  }) {
 
-  // Increment and decrement functions
-  const increment = () => setQuantity(quantity + 1);
-  const decrement = () => setQuantity(quantity > 0 ? quantity - 1 : 0);
+  // Increment and decrement, any changes will inform the parent
+   const increment = () => onQuantityChange(itemName, quantity + 1);
+  const decrement = () => onQuantityChange(itemName, Math.max(0, quantity - 1));
+
 
   return (
     <div
