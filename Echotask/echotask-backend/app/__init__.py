@@ -1,5 +1,8 @@
 from flask import Flask
 from config import Config
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
@@ -9,7 +12,8 @@ def create_app():
     app.config.from_object(Config)
     # Tell Flask to load a bunch of settings from the congig class (defined in config.py)
     # settings including: Database URL, Secret Key, other options(UPLOAD_FOLDER, SESSION_COOKIE_SECURE, etc.)
-
+    
+    db.init_app(app)
 
     # Import and register Blueprints here
     from app.routes.home import home_bp

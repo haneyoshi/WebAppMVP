@@ -3,11 +3,13 @@
 echotask-backend/
 │
 ├── app/ # A folder to organize backend server code (Flask)
-│ ├── **init**.py
+│ ├── _init_.py
 │ ├── models/ # Database models
 │ ├── routes/ # API routes (Blueprints)
 │ ├── services/ # Business logic if needed
 │ ├── schemas/ # (Optional) for request/response validation
+│
+├── Instance/
 │
 ├── src/ # A "source" code folder for React components, pages, CSS, utilities
 │ ├── components/ # reusable components
