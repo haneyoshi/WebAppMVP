@@ -12,3 +12,5 @@ class Area(db.Model):
 
     building = db.relationship('Building', back_populates='areas')
     users = db.relationship('User', back_populates='area')
+    snow_log_locations = db.relationship('SnowLogLocation', back_populates='area', cascade='all, delete-orphan')
+

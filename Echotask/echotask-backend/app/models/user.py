@@ -15,3 +15,6 @@ class User(db.Model):
 
     area = db.relationship('Area', back_populates='users')
     #db.relationship() — sets up a Python-level link between models (this tells SQLAlchemy how to access related records).
+    snow_logs = db.relationship('SnowLog', back_populates='user', foreign_keys='SnowLog.user_id')
+    marked_attendance = db.relationship('AttendanceRecord', foreign_keys='AttendanceRecord.marked_by_user_id')
+

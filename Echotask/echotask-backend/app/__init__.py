@@ -1,6 +1,9 @@
+# Main app factory, creates the Flask app, connects the database, registers the routes
+
 from flask import Flask
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
+from .routes import register_routes
 
 db = SQLAlchemy()
 
@@ -14,6 +17,8 @@ def create_app():
     # settings including: Database URL, Secret Key, other options(UPLOAD_FOLDER, SESSION_COOKIE_SECURE, etc.)
     
     db.init_app(app)
+
+    register_routes(app)
 
     # Import and register Blueprints here
     from app.routes.home import home_bp
