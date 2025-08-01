@@ -30,13 +30,6 @@ echotask-backend/
 
 
 
-
-
-
-
-
-
-
 src/
 ├── components/          (reusable components)
 │   ├── SearchBar.jsx
