@@ -16,11 +16,13 @@ def get_attendance():
     result = []
     for record in records:
         result.append({
-            "id": record.attendance_record_id,
+            "attendance_record_id": record.attendance_record_id,
             "user_id": record.user_id,
-            "date": record.attendance_date.isoformat(),
-            "present": record.present,
-            "marked_by": record.marked_by_user_id,
+            "user_name": record.user.name,
+            # !! altough attendance model doesn't have "user name" attribute. Becasue of "db.relationship()", this model record can access the name attribute in user model
+            "attendance_date": record.attendance_date.isoformat(),
+            "marked_by_user_id": record.marked_by_user_id,
+            "marked_by_name": record.marked_by.name if record.marked_by else None,
             "marked_at": record.marked_at.isoformat()
         })
     return jsonify(result)
@@ -32,9 +34,11 @@ def mark_attendance():
     data = request.get_json()
     # this grabs the JSON sent from frontend
     user_id = data.get("user_id")
+    # pull values manually
     present = data.get("present")
     marked_by = data.get("marked_by_user_id")
 
+    #now create new record and assign each attribue
     new_record = AttendanceRecord(
         user_id=user_id,
         attendance_date=datetime.utcnow().date(),
