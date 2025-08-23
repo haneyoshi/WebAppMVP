@@ -17,11 +17,11 @@ class User(db.Model):
     email = db.Column(db.String, unique=True, nullable=False)
     password_hash = db.Column(db.String, nullable=False)
     role = db.Column(db.String, nullable=False)  # worker, coordinator, supervisor
-    area_id = db.Column(db.Integer, db.ForeignKey('areas.area_id'), nullable=True)
+    area_id = db.Column(db.Integer, db.ForeignKey('areas.area_id'), unique=True, nullable=True)
     # db.ForeignKey() — defines a foreign key column (this tells SQLAlchemy where the relationship starts).
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    area = db.relationship('Area', back_populates='users')
+    area = db.relationship('Area', uselist=False)
     #db.relationship() — sets up a Python-level link between models (this tells SQLAlchemy how to access related records).
     snow_logs = db.relationship('SnowLog', back_populates='user', foreign_keys='SnowLog.user_id')
     marked_attendance = db.relationship('AttendanceRecord', foreign_keys='AttendanceRecord.marked_by_user_id')

@@ -11,6 +11,6 @@ class Area(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     building = db.relationship('Building', back_populates='areas')
-    users = db.relationship('User', back_populates='area')
+    user = db.relationship('User', uselist=False)
     snow_log_locations = db.relationship('SnowLogLocation', back_populates='area', cascade='all, delete-orphan')
 

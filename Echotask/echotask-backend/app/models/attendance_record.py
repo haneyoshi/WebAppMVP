@@ -15,8 +15,8 @@ class AttendanceRecord(db.Model):
 
     user = db.relationship('User', foreign_keys=[user_id])
     marked_by = db.relationship('User', foreign_keys=[marked_by_user_id])
-
     # SQLAlchemy automatically does the JOIN in the background by using "db.relationship"
+    # one attendance record refers to two user instance, therefore needs to specify which is which
 
     __table_args__ = (
         db.UniqueConstraint('user_id', 'attendance_date', name='uq_user_attendance_date'),

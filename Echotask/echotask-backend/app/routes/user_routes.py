@@ -30,7 +30,7 @@ def create_user():
     
     name = data.get('name')
     email = data.get('email')
-    password_hash = data.get('password_hash')  # For now, just assume it's hashed
+    password_hash = data.get('password_hash')
     role = data.get('role')
     area_id = data.get('area_id')
 
