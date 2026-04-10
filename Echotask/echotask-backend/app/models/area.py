@@ -11,6 +11,8 @@ class Area(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     building = db.relationship('Building', back_populates='areas')
-    user = db.relationship('User', uselist=False)
+    # back_populates='areas' tells SQLAlchemy that the Building model has a relationship attribute named areas that corresponds to this relationship.
+    
+    user = db.relationship('User',back_populates='area', uselist=False)
     snow_log_locations = db.relationship('SnowLogLocation', back_populates='area', cascade='all, delete-orphan')
 

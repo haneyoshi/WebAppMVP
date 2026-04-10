@@ -11,11 +11,11 @@ from models.supply_item import SupplyItem
 from models.supply_request import SupplyRequest
 from models.supply_request_item import SupplyRequestItem
 
-supply_bp = Blueprint("supply", __name__, url_prefix="/supplies")
+supplies_bp = Blueprint("supply", __name__, url_prefix="/supplies")
 
 
 # GET /supplies/items : list all supply items
-@supply_bp.route("/items", methods=["GET"])
+@supplies_bp.route("/items", methods=["GET"])
 def list_items():
     items = SupplyItem.query.order_by(SupplyItem.item_name.asc()).all()
     return jsonify([
@@ -31,7 +31,7 @@ def list_items():
 
 # POST /supplies/items/import : import items from CSV (one-time seed)
 # Expected CSV columns: item_name,item_description
-@supply_bp.route("/items/import", methods=["POST"])
+@supplies_bp.route("/items/import", methods=["POST"])
 def import_items_from_csv():
     # CSV is at project root: echotask-backend/supply_Item_List.csv (same level as /app)
     csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "supply_Item_List.csv")
@@ -76,7 +76,7 @@ def import_items_from_csv():
 #       {"item_id": 9, "quantity": 1}
 #   ]
 # }
-@supply_bp.route("/requests", methods=["POST"])
+@supplies_bp.route("/requests", methods=["POST"])
 def create_supply_request():
     data = request.get_json(silent=True) or {}
     submitted_by_user_id = data.get("submitted_by_user_id")
@@ -125,7 +125,7 @@ def create_supply_request():
 
 
 # GET /supplies/requests : list all requests with nested items (manager view)
-@supply_bp.route("/requests", methods=["GET"])
+@supplies_bp.route("/requests", methods=["GET"])
 def list_supply_requests():
     requests_q = SupplyRequest.query.order_by(SupplyRequest.submitted_at.desc()).all()
 
@@ -162,7 +162,7 @@ def list_supply_requests():
 
 
 # GET /supplies/requests/summary/items : totals per item (simple procurement view)
-@supply_bp.route("/requests/summary/items", methods=["GET"])
+@supplies_bp.route("/requests/summary/items", methods=["GET"])
 def summary_by_item():
     # naive aggregation in Python (fine for MVP)
     lines = SupplyRequestItem.query.all()

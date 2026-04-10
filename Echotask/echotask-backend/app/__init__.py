@@ -30,4 +30,8 @@ def create_app():
     from app.routes.snow_log_routes import snowlog_bp
     app.register_blueprint(snowlog_bp)
 
+    # Register seed commands (terminal commands)
+    from seeds import register_cli
+    register_cli(app)
+
     return app

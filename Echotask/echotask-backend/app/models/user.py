@@ -21,7 +21,7 @@ class User(db.Model):
     # db.ForeignKey() — defines a foreign key column (this tells SQLAlchemy where the relationship starts).
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    area = db.relationship('Area', uselist=False)
+    area = db.relationship('Area', back_populates='user', uselist=False)
     #db.relationship() — sets up a Python-level link between models (this tells SQLAlchemy how to access related records).
     snow_logs = db.relationship('SnowLog', back_populates='user', foreign_keys='SnowLog.user_id')
     marked_attendance = db.relationship('AttendanceRecord', foreign_keys='AttendanceRecord.marked_by_user_id')
