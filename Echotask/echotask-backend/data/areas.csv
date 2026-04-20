@@ -1,0 +1,23 @@
+area_id,area_name,description,building_id,assigned_user_id
+1,Physical Plant Main,"Office; Stores; Power House",1,1
+2,Plant Science Upper,"Plant Science 3rd to 5th floors",2,2
+3,Plant Science Lower and Art Barn,"Plant Science basement and 1st floor; Art Barn",2,3
+4,Tache West Lower,"Tache West 1st and 2nd floors",3,4
+5,Tache West Upper,"Tache West 3rd and 4th floors",3,5
+6,Tache East Lower,"Tache East 1st and 2nd floors",3,6
+7,Tache East Upper,"Tache East 3rd and 4th floors",3,7
+8,Art Lab Upper and Basement,"Basement floor and 3rd floor",4,8
+9,Art Lab Lower,"1st and 2nd floors",4,9
+10,Tier Lower,"1st and 2nd floors",5,10
+11,Tier Upper,"3rd and 4th floors",5,11
+12,Isbister Lower,"1st and 2nd floors",6,12
+13,Isbister Upper,"4th and 5th floors",6,13
+14,Fletcher Argue Main,"1st and 2nd floors",7,14
+15,Library 1st Floor,"Elizabeth Dafoe Library 1st floor",8,15
+16,Library 2nd Floor,"Elizabeth Dafoe Library 2nd floor",8,16
+17,Library 3rd Floor,"Elizabeth Dafoe Library 3rd floor",8,17
+18,Administration Main,"Whole building",9,18
+19,Drake Basement,"Basement",10,19
+20,Drake First Floor,"1st floor",10,20
+21,Drake Second Floor,"2nd floor",10,21
+22,Drake Upper Floors,"3rd and 4th floors",10,22

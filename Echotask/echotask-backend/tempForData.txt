@@ -1,0 +1,35 @@
+building, areas, responsible workers relationship:
+
+Example:
+Building A:
+Area a: worker 1; Area b: worker 2
+
+Physical Plant:
+Office: Byran; Stores: Byran; Power House: Byran.
+
+Agriculture Building:
+Plant Science 3-5 floors, Dora; Plant Science basement and first floor: Alex; Art Barn: Alex.
+
+Tache Hall:
+Tache West 1st and 2nd floor: Gabriel; Tache West 3rd and 4th floor: Jenifer; Tache east 1st and 2nd floor: Natelie; Tache 3rd and 4th floor: Alexia.
+
+Art Lab:
+Basement Floor and 3rd floor: Diane; 1st and 2nd floor: Pam.
+
+Tier Building:
+1st and 2nd floor: Emely; 3rd and 4th: Priamo.
+
+Isbister Building:
+1st and 2nd: Ken; 4th and 5th: Yang.
+
+Fletcher Argue:
+1st and 2nd floor: Moo.
+
+Elizabeth Dafoe Library:
+1st floor: Patrecia; 2nd floor: Ein; 3rd floor: Glend.
+
+Administration Building:
+whole building: Christ.
+
+Drake:
+Basement: Yoa; first floor: Rosana; 2nd floor: Mit; 3rd and 4rth floor: Jhon.
