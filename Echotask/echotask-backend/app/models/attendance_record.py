@@ -14,7 +14,7 @@ class AttendanceRecord(db.Model):
     marked_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', foreign_keys=[user_id])
-    marked_by = db.relationship('User', foreign_keys=[marked_by_user_id])
+    marked_by = db.relationship('User', foreign_keys=[marked_by_user_id], overlaps="marked_attendance")
     # SQLAlchemy automatically does the JOIN in the background by using "db.relationship"
     # one attendance record refers to two user instance, therefore needs to specify which is which
 

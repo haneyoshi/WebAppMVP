@@ -3,7 +3,6 @@
 from flask import Flask
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
-from .routes import register_routes
 
 db = SQLAlchemy()
 
@@ -18,17 +17,9 @@ def create_app():
     
     db.init_app(app)
     # connects the Flask app to that database object
-    register_routes(app)
 
-    # Import and register Blueprints here
-    from app.routes.test_routes import home_bp
-    app.register_blueprint(home_bp)
-    from app.routes.supply_routes import supplies_bp
-    app.register_blueprint(supplies_bp)
-    from app.routes.attendance_routes import attendance_bp
-    app.register_blueprint(attendance_bp)
-    from app.routes.snow_log_routes import snowlog_bp
-    app.register_blueprint(snowlog_bp)
+    from .routes import register_routes
+    register_routes(app)
 
     # Register seed commands (terminal commands)
     from seeds import register_cli

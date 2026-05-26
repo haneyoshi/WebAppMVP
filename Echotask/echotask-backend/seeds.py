@@ -3,6 +3,7 @@
 from flask.cli import with_appcontext
 import click, csv, os
 from datetime import datetime
+from pathlib import Path
 
 from app import db
 from app.models.user import User
@@ -104,33 +105,46 @@ def seed_sample_request():
 @click.command("seed-core-data")
 @with_appcontext
 def seed_core_data():
-    import csv
-    import os
+    load_core_data()
 
-    data_folder = os.path.join(os.getcwd(), "data")
 
-    buildings_path = os.path.join(data_folder, "buildings.csv")
-    users_path = os.path.join(data_folder, "users.csv")
-    areas_path = os.path.join(data_folder, "areas.csv")
+def load_core_data():
+    backend_dir = Path(__file__).resolve().parent
+    data_folder = backend_dir / "data"
 
-    # ---- 1. Check files exist
+    buildings_path = data_folder / "buildings.csv"
+    users_path = data_folder / "users.csv"
+    areas_path = data_folder / "areas.csv"
+
     for path in [buildings_path, users_path, areas_path]:
-        if not os.path.exists(path):
+        if not path.exists():
             click.echo(f"[ERR] Missing file: {path}")
             raise SystemExit(1)
 
-    # ---- 2. Clear existing data (IMPORTANT: correct order)
+    from app.models import (
+        AttendanceRecord,
+        SnowLog,
+        SnowLogLocation,
+        SupplyRequest,
+        SupplyRequestItem,
+    )
+
+    db.create_all()
+
     click.echo("[INFO] Clearing existing data...")
+    SupplyRequestItem.query.delete()
+    SupplyRequest.query.delete()
+    AttendanceRecord.query.delete()
+    SnowLog.query.delete()
+    SnowLogLocation.query.delete()
     User.query.delete()
     Area.query.delete()
     Building.query.delete()
     db.session.commit()
 
-    # ---- 3. Load Buildings
     click.echo("[INFO] Loading buildings...")
-    with open(buildings_path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
+    with buildings_path.open(newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
             db.session.add(Building(
                 building_id=int(row["building_id"]),
                 building_name=row["building_name"],
@@ -138,11 +152,10 @@ def seed_core_data():
             ))
     db.session.commit()
 
-    # ---- 4. Load Areas (NO user assignment here)
     click.echo("[INFO] Loading areas...")
-    with open(areas_path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
+    with areas_path.open(newline="", encoding="utf-8") as f:
+        area_rows = list(csv.DictReader(f))
+        for row in area_rows:
             db.session.add(Area(
                 area_id=int(row["area_id"]),
                 area_name=row["area_name"],
@@ -152,93 +165,43 @@ def seed_core_data():
             ))
     db.session.commit()
 
-    # ---- 5. Load Users (assign area_id here)
     click.echo("[INFO] Loading users and assigning areas...")
-    with open(areas_path, newline="", encoding="utf-8") as f:
-        area_reader = {int(row["assigned_user_id"]): int(row["area_id"])
-                       for row in csv.DictReader(f)}
+    area_by_user = {
+        int(row["assigned_user_id"]): int(row["area_id"])
+        for row in area_rows
+        if row.get("assigned_user_id")
+    }
 
-    with open(users_path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
+    with users_path.open(newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
             user_id = int(row["user_id"])
-            assigned_area_id = area_reader.get(user_id)
-
             db.session.add(User(
                 user_id=user_id,
                 name=row["user_name"],
-                email=f"user{user_id}@example.com",  # placeholder
-                password_hash="demo",               # placeholder
+                email=f"user{user_id}@example.com",
+                password_hash="demo",
                 role=row["role"],
-                area_id=assigned_area_id,           # THIS is the correct link
+                area_id=area_by_user.get(user_id),
                 created_at=datetime.utcnow()
             ))
     db.session.commit()
 
     click.echo("[OK] Core data loaded successfully!")
-    import csv
-    import os
+    click.echo(
+        "[VERIFY] "
+        f"buildings={Building.query.count()}, "
+        f"areas={Area.query.count()}, "
+        f"users={User.query.count()}"
+    )
 
-    data_folder = os.path.join(os.getcwd(), "data")
-
-    buildings_path = os.path.join(data_folder, "buildings.csv")
-    users_path = os.path.join(data_folder, "users.csv")
-    areas_path = os.path.join(data_folder, "areas.csv")
-
-    # ---- 1. Safety check
-    for path in [buildings_path, users_path, areas_path]:
-        if not os.path.exists(path):
-            click.echo(f"[ERR] Missing file: {path}")
-            raise SystemExit(1)
-
-    # ---- 2. Clear existing data (Option B)
-    click.echo("[INFO] Clearing existing data...")
-    Area.query.delete()
-    User.query.delete()
-    Building.query.delete()
-    db.session.commit()
-
-    # ---- 3. Load Buildings
-    click.echo("[INFO] Loading buildings...")
-    with open(buildings_path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            db.session.add(Building(
-                building_id=int(row["building_id"]),
-                building_name=row["building_name"],
-                created_at=datetime.utcnow()
-            ))
-    db.session.commit()
-
-    # ---- 4. Load Users
-    click.echo("[INFO] Loading users...")
-    with open(users_path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            db.session.add(User(
-                user_id=int(row["user_id"]),
-                name=row["user_name"],
-                role=row["role"],
-                area_id=None,
-                created_at=datetime.utcnow()
-            ))
-    db.session.commit()
-
-    # ---- 5. Load Areas
-    click.echo("[INFO] Loading areas...")
-    with open(areas_path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            db.session.add(Area(
-                area_id=int(row["area_id"]),
-                area_name=row["area_name"],
-                description=row["description"],
-                building_id=int(row["building_id"]),
-                created_at=datetime.utcnow()
-            ))
-    db.session.commit()
-
-    click.echo("[OK] Core data loaded successfully!")
+    first_user = User.query.order_by(User.user_id).first()
+    first_area = Area.query.order_by(Area.area_id).first()
+    if first_user and first_area:
+        click.echo(
+            "[VERIFY] "
+            f"first_user={first_user.user_id}:{first_user.name}, "
+            f"first_area={first_area.area_id}:{first_area.area_name}"
+        )
 
 def register_cli(app):
     app.cli.add_command(seed_supplies)

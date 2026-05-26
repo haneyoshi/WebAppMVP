@@ -5,11 +5,11 @@ import csv
 import os
 
 # ==== IMPORT MODELS ====
-from models.user import User
-from models.area import Area
-from models.supply_item import SupplyItem
-from models.supply_request import SupplyRequest
-from models.supply_request_item import SupplyRequestItem
+from app.models.user import User
+from app.models.area import Area
+from app.models.supply_item import SupplyItem
+from app.models.supply_request import SupplyRequest
+from app.models.supply_request_item import SupplyRequestItem
 
 supplies_bp = Blueprint("supply", __name__, url_prefix="/supplies")
 
