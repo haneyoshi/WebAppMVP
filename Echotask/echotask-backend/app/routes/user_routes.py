@@ -26,7 +26,9 @@ def get_users():
 # POST /users - Create new user
 @user_bp.route('/', methods=['POST'])
 def create_user():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
+    #silent=True prevents Flask from producing an automatic error for malformed or missing JSON.
+    #or {} ensures data is always a dictionary.
     
     name = data.get('name')
     email = data.get('email')
