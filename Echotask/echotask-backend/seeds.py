@@ -49,7 +49,8 @@ def seed_supplies(csv_path):
         # -> This makes each row a dict => {"Category": "PAPER PRODUCTS", "Product": "SWISH CLEAN & GREEN® HAND TOWEL..."}
         for row in reader:
             name = (row.get("Product") or "").strip()
-            if not name:
+            category = (row.get("Category") or "").strip()
+            if not name or not category:
                 skipped += 1
                 continue
                 # -> skip and go next row
@@ -59,7 +60,7 @@ def seed_supplies(csv_path):
                 continue
             db.session.add(SupplyItem(
                 item_name=name,
-                item_description=None,
+                category=category,
                 created_at=datetime.utcnow(),
             ))
             created += 1
