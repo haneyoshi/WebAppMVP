@@ -1,7 +1,7 @@
 # models/attendance_record.py
 
 from app import db
-from datetime import datetime
+from app.time_utils import utc_now
 
 class AttendanceRecord(db.Model):
     __tablename__ = 'attendance_records'
@@ -10,8 +10,10 @@ class AttendanceRecord(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     attendance_date = db.Column(db.Date, nullable=False)
     present = db.Column(db.Boolean, nullable=False)
+    status = db.Column(db.String, nullable=False, default='Working')
+    absence_reason = db.Column(db.Text, nullable=True)
     marked_by_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
-    marked_at = db.Column(db.DateTime, default=datetime.utcnow)
+    marked_at = db.Column(db.DateTime, default=utc_now)
 
     user = db.relationship('User', foreign_keys=[user_id])
     marked_by = db.relationship('User', foreign_keys=[marked_by_user_id], overlaps="marked_attendance")

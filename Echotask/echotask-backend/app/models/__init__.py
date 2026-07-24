@@ -7,6 +7,8 @@ from .snow_log_location import SnowLogLocation
 from .supply_item import SupplyItem
 from .supply_request import SupplyRequest
 from .supply_request_item import SupplyRequestItem
+from .event import Event
+from .assignment import Assignment, assignment_workers
 
 # 1) A folder with an __init__.py becomes a Python package/module
 # 2) This allows Python to treat that folder like a module you can import.

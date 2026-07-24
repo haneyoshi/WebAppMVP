@@ -8,6 +8,7 @@ class SnowLogLocation(db.Model):
     snow_log_location_id = db.Column(db.Integer, primary_key=True)
     area_id = db.Column(db.Integer, db.ForeignKey('areas.area_id'), nullable=False)
     location_name = db.Column(db.String, nullable=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
 
     area = db.relationship('Area', back_populates='snow_log_locations')
     snow_logs = db.relationship('SnowLog', back_populates='location', cascade='all, delete-orphan')
