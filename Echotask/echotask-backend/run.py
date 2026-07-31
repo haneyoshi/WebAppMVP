@@ -8,7 +8,7 @@ app = create_app()
 if __name__ == "__main__":
     # If this file (run.py) is the main file that was executed (not imported), then run the following code.
     # If you just imported run.py somewhere else, the code inside that if block would not run.
-    app.run(debug=True)
+    app.run()
     # when "app" runs, tells Flask to call(automatically) "hello()" and shows whatever it returns
  
 
