@@ -71,6 +71,15 @@ session identity, logout, and post-logout rejection. The SPA root and a direct
 feature-route entry both loaded through Vite, and frontend account visibility
 matches the backend's supervisor-only account-management authorization.
 
+The **Worker Attendance / Check-in UI** milestone is complete. Attendance now
+uses the existing backend API: workers fetch their own current-day record,
+check in once, and refetch authoritative state after reloads or duplicate
+conflicts. Coordinators and supervisors receive a read-only current-day summary
+that omits absence reasons and correction metadata; management tools remain a
+later milestone. The integration was verified through the Vite proxy with an
+isolated seeded database, including 401, 201, and duplicate 409 behavior. No
+backend files or behavior changed.
+
 ## Important backend and UI constraints
 
 - Authentication is server-side session based: `POST /auth/login`,
@@ -112,6 +121,6 @@ matches the backend's supervisor-only account-management authorization.
 
 ## Next action
 
-Continue with the next product slice. A human visual browser pass remains
-optional for subjective layout/responsiveness review; no unresolved technical
-integration check remains for the UI Foundation authentication flow.
+Continue with **Dashboard real attendance + worker availability data**. Keep
+shared dashboard status privacy-safe and use the existing availability API;
+do not expose absence reasons.

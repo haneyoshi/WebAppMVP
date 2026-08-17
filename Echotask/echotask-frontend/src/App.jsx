@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import { getCurrentUser, login, logout } from './api/session'
 import AppShell from './components/AppShell'
+import AttendancePage from './pages/AttendancePage'
 import DashboardPage from './pages/DashboardPage'
 import LoginPage from './pages/LoginPage'
 import PlaceholderPage from './pages/PlaceholderPage'
@@ -56,7 +57,7 @@ function App() {
     <Routes>
       <Route element={<AppShell user={user} onLogout={handleLogout} />}>
         <Route index element={<DashboardPage />} />
-        <Route path="attendance" element={<PlaceholderPage title="Attendance" />} />
+        <Route path="attendance" element={<AttendancePage user={user} />} />
         <Route path="supplies" element={<SuppliesRequestPage />} />
         <Route path="snow-logs" element={<PlaceholderPage title="Snow Logs" />} />
         <Route path="events" element={<PlaceholderPage title="Events" />} />
