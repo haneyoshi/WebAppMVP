@@ -1,7 +1,7 @@
 # models/snow_log.py
 
 from app import db
-from datetime import datetime
+from app.time_utils import utc_now
 
 class SnowLog(db.Model):
     __tablename__ = 'snow_logs'
@@ -12,7 +12,7 @@ class SnowLog(db.Model):
 
     action_taken = db.Column(db.Text, nullable=True)
     condition = db.Column(db.Text, nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=utc_now)
 
-    user = db.relationship('User')
+    user = db.relationship('User', back_populates='snow_logs')
     location = db.relationship('SnowLogLocation', back_populates='snow_logs')

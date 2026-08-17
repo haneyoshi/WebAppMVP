@@ -2,8 +2,8 @@
 
 from flask.cli import with_appcontext
 import click, csv, os
-from datetime import datetime
 from pathlib import Path
+from app.time_utils import utc_now
 
 from app import db
 from app.models.user import User
@@ -61,7 +61,7 @@ def seed_supplies(csv_path):
             db.session.add(SupplyItem(
                 item_name=name,
                 category=category,
-                created_at=datetime.utcnow(),
+                created_at=utc_now(),
             ))
             created += 1
     db.session.commit()
@@ -72,15 +72,17 @@ def seed_supplies(csv_path):
 @with_appcontext
 def seed_core_demo():
     # Buildings / Areas
-    b = Building(building_name="Fictional Demo Building", created_at=datetime.utcnow())
+    b = Building(building_name="Demo Building", created_at=utc_now())
     db.session.add(b); db.session.flush()
-    a = Area(area_name="Fictional Demo Lobby", building_id=b.building_id, description="Demonstration area", created_at=datetime.utcnow())
+    a = Area(area_name="Main Lobby", building_id=b.building_id, description="Front lobby", created_at=utc_now())
     db.session.add(a); db.session.flush()
 
     # Users (worker, coordinator, supervisor)
-    u_worker = User(name="Demo Worker", email="worker@example.com", password_hash="demo", role="worker", area_id=a.area_id, created_at=datetime.utcnow())
-    u_coord  = User(name="Demo Coordinator", email="coordinator@example.com", password_hash="demo", role="coordinator", area_id=None, created_at=datetime.utcnow())
-    u_super  = User(name="Demo Supervisor", email="supervisor@example.com", password_hash="demo", role="supervisor", area_id=None, created_at=datetime.utcnow())
+    u_worker = User(name="Alice Worker", email="alice@example.com", role="worker", area_id=a.area_id, created_at=utc_now())
+    u_coord  = User(name="Bob Coordinator", email="bob@example.com", role="coordinator", area_id=None, created_at=utc_now())
+    u_super  = User(name="Sara Supervisor", email="sara@example.com", role="supervisor", area_id=None, created_at=utc_now())
+    for user in (u_worker, u_coord, u_super):
+        user.set_password("demo")
     db.session.add_all([u_worker, u_coord, u_super])
     db.session.commit()
     click.echo(f"[OK] Core demo seeded. building_id={b.building_id}, area_id={a.area_id}, users={[u_worker.user_id, u_coord.user_id, u_super.user_id]}")
@@ -96,12 +98,12 @@ def seed_sample_request():
         click.echo("[ERR] Need at least 1 worker, 1 area, and 1 supply_item. Run: flask seed-core-demo && flask seed-supplies")
         raise SystemExit(1)
 
-    req = SupplyRequest(submitted_by_user_id=worker.user_id, area_id=area.area_id, submitted_at=datetime.utcnow())
+    req = SupplyRequest(user_id=worker.user_id, area_id=area.area_id, request_date=utc_now())
     db.session.add(req); db.session.flush()
     for it in items:
-        db.session.add(SupplyRequestItem(supply_request_id=req.supply_request_id, supply_item_id=it.supply_item_id, quantity=1))
+        db.session.add(SupplyRequestItem(request_id=req.request_id, item_id=it.item_id, quantity=1))
     db.session.commit()
-    click.echo(f"[OK] Created sample request supply_request_id={req.supply_request_id}")
+    click.echo(f"[OK] Created sample request supply_request_id={req.request_id}")
 
 @click.command("seed-core-data")
 @with_appcontext
@@ -123,11 +125,14 @@ def load_core_data():
             raise SystemExit(1)
 
     from app.models import (
+        Assignment,
         AttendanceRecord,
+        Event,
         SnowLog,
         SnowLogLocation,
         SupplyRequest,
         SupplyRequestItem,
+        assignment_workers,
     )
 
     db.create_all()
@@ -135,6 +140,9 @@ def load_core_data():
     click.echo("[INFO] Clearing existing data...")
     SupplyRequestItem.query.delete()
     SupplyRequest.query.delete()
+    db.session.execute(assignment_workers.delete())
+    Assignment.query.delete()
+    Event.query.delete()
     AttendanceRecord.query.delete()
     SnowLog.query.delete()
     SnowLogLocation.query.delete()
@@ -149,7 +157,7 @@ def load_core_data():
             db.session.add(Building(
                 building_id=int(row["building_id"]),
                 building_name=row["building_name"],
-                created_at=datetime.utcnow()
+                created_at=utc_now()
             ))
     db.session.commit()
 
@@ -162,7 +170,7 @@ def load_core_data():
                 area_name=row["area_name"],
                 description=row["description"],
                 building_id=int(row["building_id"]),
-                created_at=datetime.utcnow()
+                created_at=utc_now()
             ))
     db.session.commit()
 
@@ -176,15 +184,23 @@ def load_core_data():
     with users_path.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             user_id = int(row["user_id"])
-            db.session.add(User(
+            user = User(
                 user_id=user_id,
                 name=row["user_name"],
                 email=f"user{user_id}@example.com",
-                password_hash="demo",
                 role=row["role"],
                 area_id=area_by_user.get(user_id),
-                created_at=datetime.utcnow()
-            ))
+                created_at=utc_now()
+            )
+            user.set_password("demo")
+            db.session.add(user)
+    for name, email, role in (
+        ("Bob Coordinator", "bob@example.com", "coordinator"),
+        ("Sara Supervisor", "sara@example.com", "supervisor"),
+    ):
+        user = User(name=name, email=email, role=role, area_id=None, created_at=utc_now())
+        user.set_password("demo")
+        db.session.add(user)
     db.session.commit()
 
     click.echo("[OK] Core data loaded successfully!")
@@ -209,4 +225,3 @@ def register_cli(app):
     app.cli.add_command(seed_core_demo)
     app.cli.add_command(seed_sample_request)
     app.cli.add_command(seed_core_data)
-
