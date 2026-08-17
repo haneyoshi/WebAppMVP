@@ -1,6 +1,4 @@
 // components/SupplyItemRow.jsx
-import React, { useState } from "react";
-
 function SupplyItemRow({ itemName, quantity, onQuantityChange  }) {
 
   // Increment and decrement, any changes will inform the parent

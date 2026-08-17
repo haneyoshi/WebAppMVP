@@ -22,14 +22,17 @@ React/Vite frontend and a Flask/Flask-SQLAlchemy backend with SQLite.
 
 ## Frontend baseline
 
-- `Echotask/echotask-frontend` is an existing Vite/React 19 app with lint,
-  build, dev, and preview scripts.
-- The app currently renders `SuppliesRequestPage` directly from `App.jsx`.
+- `Echotask/echotask-frontend` is a Vite/React 19 app using React Router.
+- Startup bootstraps the Flask session through `GET /auth/me`; unauthenticated
+  users receive the login view, and authenticated users enter the app shell.
+- The reusable shell provides Dashboard, Attendance, Supplies, Snow Logs, and
+  Events navigation. Accounts appears only for supervisors, matching backend
+  authorization.
 - The working supplies-request prototype and its components must be preserved
-  while the wider app structure is introduced. It currently uses mock supply
-  data and a simulated submit action; backend integration is still future work.
-- The existing frontend runs successfully. No router, app shell, or shared
-  authentication/session layer exists yet.
+  and is reachable at `/supplies`. It still uses mock supply data and a
+  simulated submit action; backend integration is future work.
+- The Dashboard contains honest empty/not-connected states for operations,
+  availability, area coverage, and events; it does not expose absence reasons.
 
 ## Current UI product direction
 
@@ -47,13 +50,26 @@ React/Vite frontend and a Flask/Flask-SQLAlchemy backend with SQLite.
 
 ## Current UI milestone and implementation order
 
-The next milestone is **UI Foundation**, implemented in this order:
+The first **UI Foundation** slice is complete and frontend lint/build pass. It
+added:
 
-1. App shell and navigation, while keeping the supplies prototype reachable.
-2. Login and session handling.
-3. Basic role-aware dashboard for attendance/availability and area coverage.
+- Centralized native-fetch API/session helpers under `src/api`, always using
+  `credentials: 'include'`.
+- React Router routes, authenticated app shell, login/logout/session bootstrap,
+  role-aware navigation, Dashboard foundation, and placeholder feature views.
+- A Vite `/api` development proxy to Flask on `localhost:5000`, rewriting the
+  prefix so existing root-level backend route paths remain unchanged.
+- `react-router-dom` as the only new frontend dependency.
 
-Defer deeper feature pages and visual polish until this foundation works.
+No backend files, configuration, dependencies, or behavior were changed.
+
+The UI Foundation end-to-end integration checkpoint is also verified. Using an
+isolated database populated by the existing `seed-core-data` command, the Vite
+development server successfully proxied the complete Flask session flow:
+unauthenticated rejection, invalid-login rejection, valid login, persisted
+session identity, logout, and post-logout rejection. The SPA root and a direct
+feature-route entry both loaded through Vite, and frontend account visibility
+matches the backend's supervisor-only account-management authorization.
 
 ## Important backend and UI constraints
 
@@ -96,5 +112,6 @@ Defer deeper feature pages and visual polish until this foundation works.
 
 ## Next action
 
-Implement the first UI Foundation slice: introduce the app shell and navigation
-without removing or regressing the existing `SuppliesRequestPage` prototype.
+Continue with the next product slice. A human visual browser pass remains
+optional for subjective layout/responsiveness review; no unresolved technical
+integration check remains for the UI Foundation authentication flow.
