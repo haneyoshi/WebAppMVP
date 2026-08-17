@@ -56,7 +56,7 @@ function App() {
   return (
     <Routes>
       <Route element={<AppShell user={user} onLogout={handleLogout} />}>
-        <Route index element={<DashboardPage />} />
+        <Route index element={<DashboardPage user={user} />} />
         <Route path="attendance" element={<AttendancePage user={user} />} />
         <Route path="supplies" element={<SuppliesRequestPage />} />
         <Route path="snow-logs" element={<PlaceholderPage title="Snow Logs" />} />

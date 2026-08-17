@@ -80,6 +80,18 @@ later milestone. The integration was verified through the Vite proxy with an
 isolated seeded database, including 401, 201, and duplicate 409 behavior. No
 backend files or behavior changed.
 
+The **Dashboard Today's Worker Availability** milestone is complete.
+Coordinator and supervisor dashboards use
+`GET /workers/availability?date=YYYY-MM-DD` to show active workers, regular
+areas, backend-derived operational status, and temporary assignment
+destinations. Assignment-derived `Assigned elsewhere` status takes precedence
+over attendance. The UI includes loading, retryable error, empty, and responsive
+list states; workers retain the existing simple dashboard. Only operational
+fields are rendered, and assignment notes or private attendance data are not
+shown. Frontend lint, production build, and `git diff --check` pass. The focused
+availability backend test could not run in the available system Python because
+Flask is not installed; no backend files or behavior changed.
+
 ## Important backend and UI constraints
 
 - Authentication is server-side session based: `POST /auth/login`,
@@ -121,6 +133,7 @@ backend files or behavior changed.
 
 ## Next action
 
-Continue with **Dashboard real attendance + worker availability data**. Keep
-shared dashboard status privacy-safe and use the existing availability API;
-do not expose absence reasons.
+Continue with the next smallest Dashboard slice: a read-only **Today's Events**
+reminder surface for coordinator and supervisor users, using the existing event
+API and preserving the simple worker dashboard unless product requirements call
+for worker visibility.

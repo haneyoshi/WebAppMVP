@@ -99,6 +99,68 @@
   padding: 20px;
 }
 
+.dashboard-card--availability {
+  grid-column: 1 / -1;
+}
+
+.availability-heading,
+.availability-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.availability-heading {
+  margin-bottom: 16px;
+}
+
+.availability-heading h3,
+.availability-heading p {
+  margin-top: 0;
+}
+
+.availability-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  border-top: 1px solid #414141;
+}
+
+.availability-list li {
+  padding: 14px 0;
+  border-bottom: 1px solid #414141;
+}
+
+.availability-worker,
+.availability-state {
+  display: grid;
+  gap: 3px;
+}
+
+.availability-worker span,
+.assignment-destination {
+  color: #aaa;
+  font-size: 0.88rem;
+}
+
+.availability-state {
+  justify-items: end;
+  text-align: right;
+}
+
+.status-badge--away {
+  color: #f4c0c0;
+  background: #442222;
+  border-color: #754040;
+}
+
+.status-badge--assigned {
+  color: #c9ddff;
+  background: #203652;
+  border-color: #3e6594;
+}
+
 .attendance-status-card {
   max-width: 560px;
   padding: 24px;
@@ -250,5 +312,15 @@
 
   .app-content {
     padding: 18px;
+  }
+
+  .availability-list li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .availability-state {
+    justify-items: start;
+    text-align: left;
   }
 }
