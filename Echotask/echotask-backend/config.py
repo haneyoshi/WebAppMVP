@@ -7,6 +7,13 @@ BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")  # Loads values from .env file
 
 
+def _env_flag(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _database_uri():
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
@@ -22,5 +29,6 @@ def _database_uri():
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
+    DEBUG = _env_flag("FLASK_DEBUG", default=False)
     SQLALCHEMY_DATABASE_URI = _database_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS = False

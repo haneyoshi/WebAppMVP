@@ -72,15 +72,15 @@ def seed_supplies(csv_path):
 @with_appcontext
 def seed_core_demo():
     # Buildings / Areas
-    b = Building(building_name="Demo Building", created_at=datetime.utcnow())
+    b = Building(building_name="Fictional Demo Building", created_at=datetime.utcnow())
     db.session.add(b); db.session.flush()
-    a = Area(area_name="Main Lobby", building_id=b.building_id, description="Front lobby", created_at=datetime.utcnow())
+    a = Area(area_name="Fictional Demo Lobby", building_id=b.building_id, description="Demonstration area", created_at=datetime.utcnow())
     db.session.add(a); db.session.flush()
 
     # Users (worker, coordinator, supervisor)
-    u_worker = User(name="Alice Worker", email="alice@example.com", password_hash="demo", role="worker", area_id=a.area_id, created_at=datetime.utcnow())
-    u_coord  = User(name="Bob Coordinator", email="bob@example.com", password_hash="demo", role="coordinator", area_id=None, created_at=datetime.utcnow())
-    u_super  = User(name="Sara Supervisor", email="sara@example.com", password_hash="demo", role="supervisor", area_id=None, created_at=datetime.utcnow())
+    u_worker = User(name="Demo Worker", email="worker@example.com", password_hash="demo", role="worker", area_id=a.area_id, created_at=datetime.utcnow())
+    u_coord  = User(name="Demo Coordinator", email="coordinator@example.com", password_hash="demo", role="coordinator", area_id=None, created_at=datetime.utcnow())
+    u_super  = User(name="Demo Supervisor", email="supervisor@example.com", password_hash="demo", role="supervisor", area_id=None, created_at=datetime.utcnow())
     db.session.add_all([u_worker, u_coord, u_super])
     db.session.commit()
     click.echo(f"[OK] Core demo seeded. building_id={b.building_id}, area_id={a.area_id}, users={[u_worker.user_id, u_coord.user_id, u_super.user_id]}")
@@ -209,5 +209,4 @@ def register_cli(app):
     app.cli.add_command(seed_core_demo)
     app.cli.add_command(seed_sample_request)
     app.cli.add_command(seed_core_data)
-
 
