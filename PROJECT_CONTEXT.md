@@ -1,43 +1,100 @@
-# EchoTask project context
+# EchoTask shared project context
 
-EchoTask is an internal React and Flask application for caretaking operations.
-The backend uses Flask-SQLAlchemy with SQLite for the MVP.
+This file is the concise source of truth for ChatGPT and Codex. Keep
+`Echotask/echotask-frontend/UIPlain.md` as a separate brainstorming/design-note
+file; promote only settled product decisions here.
 
-## Core model
+## Project purpose
 
-- Buildings contain regular work areas.
-- A worker has one regular area; coordinator and supervisor accounts do not.
-- Attendance keeps one official record per worker and date.
-- Temporary date-only assignments can include multiple workers without changing
-  their regular areas.
-- Snow logs reference reusable, deactivatable locations within areas.
-- Supply requests permanently retain their submitted area and contain line items.
-- Events belong to buildings.
+EchoTask is an internal caretaking-operations web app. It gives workers,
+coordinators, and supervisors a shared view of attendance, area coverage,
+temporary assignments, events, snow logs, and supply requests. The MVP uses a
+React/Vite frontend and a Flask/Flask-SQLAlchemy backend with SQLite.
 
-## Roles
+## Verified Git and backend checkpoint
 
-- Workers check in, view their own attendance, submit supplies and snow logs, and
-  read shared events, assignments, regular areas, and availability.
-- Coordinators manage official attendance, assignments, events, and snow
-  locations and read operational records.
-- Supervisors inherit coordinator capabilities and manage accounts and supply
+- Current working branch: `feature/ui-mvp`.
+- `main` baseline commit: `4dd719b54c3365af03f266c4bd04ddf54b50a57e`.
+- The backend MVP is merged into `main`.
+- The `seeds.py` merge conflict was resolved with the backend MVP version.
+- At that checkpoint, `git diff --check` passed and the full backend unit suite
+  passed: 52 tests, OK.
+
+## Frontend baseline
+
+- `Echotask/echotask-frontend` is an existing Vite/React 19 app with lint,
+  build, dev, and preview scripts.
+- The app currently renders `SuppliesRequestPage` directly from `App.jsx`.
+- The working supplies-request prototype and its components must be preserved
+  while the wider app structure is introduced. It currently uses mock supply
+  data and a simulated submit action; backend integration is still future work.
+- The existing frontend runs successfully. No router, app shell, or shared
+  authentication/session layer exists yet.
+
+## Current UI product direction
+
+- Build a clear role-aware application shell with navigation to operational
+  areas such as the dashboard, attendance, assignments/coverage, events, snow
+  logs, and supplies.
+- The primary dashboard/map should communicate daily attendance/availability
+  and which worker covers each area, including temporary coverage.
+- Selecting an area may reveal its regular worker and current coverage, but the
+  dashboard must never expose private absence reasons.
+- Snow-log records and supply requests belong on dedicated pages. Events need a
+  visible reminder surface plus coordinator/supervisor management UI.
+- `UIPlain.md` remains the raw idea backlog; it is not an approved detailed UI
+  specification.
+
+## Current UI milestone and implementation order
+
+The next milestone is **UI Foundation**, implemented in this order:
+
+1. App shell and navigation, while keeping the supplies prototype reachable.
+2. Login and session handling.
+3. Basic role-aware dashboard for attendance/availability and area coverage.
+
+Defer deeper feature pages and visual polish until this foundation works.
+
+## Important backend and UI constraints
+
+- Authentication is server-side session based: `POST /auth/login`,
+  `GET /auth/me`, and authenticated `POST /auth/logout`. The frontend must send
+  session cookies with API requests and treat 401 and 403 distinctly.
+- Roles are `worker`, `coordinator`, and `supervisor`. Workers handle their own
+  check-in and submissions; coordinators manage operational records;
+  supervisors inherit coordinator capabilities and manage accounts and supply
   processing.
+- `GET /workers/availability?date=YYYY-MM-DD` provides shared worker status,
+  regular area, and temporary assignments. Shared availability is limited to
+  `Working`, `Away`, and `Assigned elsewhere`; absence reasons are private and
+  must not appear in shared dashboard/map UI.
+- Buildings contain regular work areas. A worker has one regular area;
+  coordinators and supervisors do not. Temporary, date-only assignments can
+  include multiple workers without changing regular areas.
+- Attendance has one official record per worker and date. Events belong to
+  buildings. Snow logs use reusable, deactivatable locations within areas.
+  Supply requests permanently retain their submitted area and line items;
+  statuses are `Submitted` and `Completed`.
+- Accounts and snow-log locations are deactivated when history must be
+  preserved.
+- Do not expand the backend into detailed individual daily task/work-order
+  management unless a concrete UI requirement demonstrates the need.
+- Backend conventions remain: application factory and shared SQLAlchemy
+  instance, explicit `*_id` keys, validated JSON with appropriate status codes,
+  explicit/non-inferential schema upgrades, and password hashes only. The demo
+  seed password is `demo`. See the backend README for the full API and setup.
 
-Accounts and snow-log locations are deactivated when history must be preserved.
-Supply request statuses are `Submitted` and `Completed`. Shared availability is
-limited to `Working`, `Away`, and `Assigned elsewhere`; private absence reasons
-are not part of shared responses.
+## Verification policy
 
-## Development conventions
+- Do not rerun the 52 backend tests during frontend-only work.
+- Rerun backend tests only when backend code, configuration, or dependencies
+  change.
+- For completed frontend milestones, run `npm run lint` and `npm run build` from
+  `Echotask/echotask-frontend`.
+- Avoid repeated setup checks and unnecessary verification; choose checks in
+  proportion to the files changed.
 
-- Use the Flask application factory and shared SQLAlchemy instance.
-- Use explicit `*_id` primary and foreign-key names.
-- Validate JSON bodies and return JSON errors with appropriate HTTP status codes.
-- Keep database upgrades explicit; never infer historical data during migration.
-- Store only password hashes. The documented seed password is `demo`.
-- Run backend tests from `Echotask/echotask-backend` with:
+## Next action
 
-  `.venv\Scripts\python.exe -m unittest discover -s tests -v`
-
-See `Echotask/echotask-backend/README.md` for endpoints, setup, and schema-upgrade
-instructions.
+Implement the first UI Foundation slice: introduce the app shell and navigation
+without removing or regressing the existing `SuppliesRequestPage` prototype.
