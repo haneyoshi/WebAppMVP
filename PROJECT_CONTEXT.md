@@ -123,11 +123,11 @@ inline using only `Working` or `Away`. The optional private absence reason is
 available only for `Away` and is explicitly cleared when a record changes to
 `Working`. The worker check-in experience remains unchanged. Frontend lint,
 production build, and `git diff --check` pass. Manual browser verification as
-Bob Coordinator confirmed the complete create-and-correct flow with Demo Worker
-01: an `Away` record with a private test reason saved and rendered on the
+Bob Coordinator confirmed the complete create-and-correct flow with the
+then-active worker record: an `Away` record with a private test reason saved and rendered on the
 Attendance page, changing it to `Working` cleared the reason, and both Dashboard
 Worker Availability and Area Coverage then showed the worker as `Working` in
-Demo Area 01. The private reason never appeared on the Dashboard.
+its regular area. The private reason never appeared on the Dashboard.
 
 The assignment API now supports coordinator/supervisor deletion through
 `DELETE /assignments/<assignment_id>`. Deletion uses the ORM, removes the
@@ -149,11 +149,11 @@ assignment deletion passes: 14 tests. Manual browser verification in the real
 development environment as Bob Coordinator confirmed that the Assignments page
 renders, destination-area and worker selection work, a worker is disabled when
 the destination is their own regular area, and Away workers remain selectable.
-Creating structured coverage for Demo Worker 01 in Demo Area 02 made the worker
+Creating structured coverage for the then-active worker and area records made the worker
 `Assigned elsewhere` and showed them as temporary coverage on the Dashboard.
-Editing that assignment to Demo Area 03 with Demo Workers 01 and 02 updated both
-workers and the area's temporary coverage. Removing it returned Demo Worker 01
-to `Working`, Demo Worker 02 to `Away`, and the affected areas to `Temporary
+Editing that assignment with two worker records updated both workers and the
+area's temporary coverage. Removing it returned the first worker to `Working`,
+the second worker to `Away`, and the affected areas to `Temporary
 coverage: None assigned`.
 
 The **Today's Event Reminders Dashboard** milestone is complete. This
@@ -248,7 +248,7 @@ its worker, location, area, action, and condition. Its deactivated location
 displayed normally because location deactivation does not invalidate completed
 work, and no timestamp was shown.
 
-Browser verification as Demo Worker 01 (`user1@example.com`) confirmed that
+Browser verification as worker account `user1@example.com` confirmed that
 workers retain the submission-only workflow without history or history
 controls. Because that worker's temporary verification location is now
 deactivated, the page correctly displayed `No active snow-clearing locations
@@ -308,22 +308,20 @@ Filters, details, pagination, editing, and deletion remain deferred.
 - Avoid repeated setup checks and unnecessary verification; choose checks in
   proportion to the files changed.
 
-The **Canonical Demo Data Cleanup** milestone is complete. `seed-core-data` is
+The **Canonical Data Setup** milestone is complete. `seed-core-data` is
 the documented canonical destructive base reset. It creates 10 buildings, 22
 areas, workers `user1@example.com` through `user22@example.com`, coordinator
 `bob@example.com`, supervisor `sara@example.com`, and three deterministic active
 Snow Log locations. Every canonical account retains the development password
-`demo`, stored as a hash. The seeded locations are Main Entrance and Accessible
-Ramp (Demo Area 01), Staff Entrance Walkway (Demo Area 02), and Loading Area
-Sidewalk (Demo Area 03). No attendance, assignment, event, Snow Log submission,
+`demo`, stored as a hash. No attendance, assignment, event, Snow Log submission,
 supply-request, or supply-item operational records are created.
 
 The safe fresh-demo sequence is `flask seed-core-data` followed by
 `flask seed-supplies --csv-path Supply_Item_List.csv`. Supply items remain a
 separate additive catalog seed and survive later core resets. `seed-core-data`
 must not be run against records that need preservation because it clears the
-core and operational tables in its reset scope. `seed-core-demo` remains only as
-a legacy additive smoke-data helper and is explicitly not the canonical reset.
+core and operational tables in its reset scope. The obsolete generic core seed
+helper is removed and cannot be used by normal setup.
 Focused seed tests pass: 2 tests, including exact accounts and locations,
 password authentication, repeatable reset behavior, and supply-item
 preservation. `git diff --check` passes.
@@ -658,13 +656,43 @@ The harmless obsolete availability/coverage CSS noted by the audit remains
 deliberately deferred to avoid another application-code change before the final
 commit.
 
-## Next time
+## Final portfolio stabilization
 
-Perform one focused browser smoke review of the polished Attendance page at
-desktop and mobile widths as a worker and as a coordinator or supervisor. Check
-summary wrapping and semantic badge contrast; native disclosure keyboard/focus
-behavior; normal versus management mode; create/correct failure and loading
-states; and the privacy boundary for absence reasons and manager-only controls.
-Then review the aggregate dirty-tree diff and prepare it for human code review
-without adding features, rewriting Request #1, or resetting/reseeding the active
-development database.
+The project remains feature-complete; no new product milestone was opened.
+Repository history confirmed that security-cleanup commit `c6c90b3` replaced
+the original workplace CSV rows with generic `Demo Building`, `Demo Area`, and
+`Demo Worker` rows. The completed `main` checkpoint restored the UofM building
+names but used rewritten area labels and newly fictional worker names. This
+correction restores the exact areas, descriptions, worker names, and ID-based
+worker assignments supplied in commit `b98ca96`. Existing SQLite databases do
+not update automatically when CSV files change and therefore required reseeding.
+
+The canonical `seed-core-data` path uses the exact supplied UofM workplace data
+from repository history: 10 buildings, 22 operational areas, the 22 supplied
+worker names with one permanent worker per area, and coordinator/supervisor
+accounts without permanent areas. Generic `Demo Building NN` / `Demo Worker NN`
+entities and the obsolete `seed-core-demo` command must not be used by normal
+setup. Reproducible public Worker, Coordinator, and Supervisor credentials,
+complete installation/runtime prerequisites, SQLite requirements, Windows and
+macOS/Linux setup, and the absence of required editor/browser extensions are
+documented in the repository README, exist only so portfolio reviewers can
+authenticate; they do not authorize replacing the supplied workplace data with
+generated dummy entities in any future milestone.
+
+The existing ignored database backup was preserved. The pre-correction
+portfolio database was additionally preserved as
+`instance/echotask-portfolio-before-supplied-data-restoration-20260818.db`.
+Both active local databases were rebuilt with the canonical seed. Verification
+found 10 buildings, 22 areas, 22
+workers, 22 permanent worker-area assignments, one coordinator, one supervisor,
+and no generic demo building or worker rows. The documented Worker, Coordinator,
+and Supervisor accounts all authenticated successfully. The documented setup
+sequence also succeeded against a fresh isolated SQLite database. The full
+backend suite passes (69 tests), frontend dependency installation, lint, and
+production build pass, and repository hygiene checks pass.
+
+## Next action
+
+No feature work is planned. Preserve this final portfolio stabilization state
+for human review; do not open another milestone, commit, or push unless
+explicitly requested.

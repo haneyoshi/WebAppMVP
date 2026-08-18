@@ -25,9 +25,9 @@ All other API endpoints require the session cookie returned by login.
 
 ## Development data
 
-`seed-core-data` is the canonical base demo reset. It creates a real-world-inspired
-caretaking structure with 10 named buildings and 22 named areas, 22 fictionally
-named demo workers with one regular worker per area, the two management accounts
+`seed-core-data` is the single canonical base reset. It restores the supplied
+UofM workplace structure with 10 named buildings, 22 named areas, the 22 supplied
+worker names with one regular worker per area, the two management accounts
 below, and a small deterministic set of active Snow Log locations. It does not
 create attendance, assignments, events, Snow Log submissions, supply requests,
 or supply items.
@@ -74,10 +74,10 @@ Do not run it against records that need to be preserved. Supply-item seeding is
 intentionally separate; `seed-supplies` adds missing catalog items and skips
 duplicates.
 
-`seed-core-demo` remains available only as a legacy, additive, minimal smoke-data
-helper. It is not the canonical reset path and its accounts are not the canonical
-demo accounts. `seed-sample-request` is also optional and creates operational
-sample data, so it is not part of the fresh-demo sequence.
+The obsolete generic core-data helper has been removed so normal setup cannot
+create placeholder buildings, areas, or workers. `seed-sample-request` is
+optional and creates operational sample data, so it is not part of the fresh
+canonical sequence.
 
 For a database created by the earlier MVP schema, run the explicit upgrade once:
 

@@ -82,27 +82,7 @@ def seed_supplies(csv_path):
     db.session.commit()
     click.echo(f"[OK] Supplies import complete. created={created}, skipped={skipped}")
 
-# ---- 2) Legacy additive smoke-data helper (not the canonical demo reset)
-@click.command("seed-core-demo")
-@with_appcontext
-def seed_core_demo():
-    # Buildings / Areas
-    b = Building(building_name="Demo Building", created_at=utc_now())
-    db.session.add(b); db.session.flush()
-    a = Area(area_name="Main Lobby", building_id=b.building_id, description="Front lobby", created_at=utc_now())
-    db.session.add(a); db.session.flush()
-
-    # Users (worker, coordinator, supervisor)
-    u_worker = User(name="Alice Worker", email="alice@example.com", role="worker", area_id=a.area_id, created_at=utc_now())
-    u_coord  = User(name="Bob Coordinator", email="bob@example.com", role="coordinator", area_id=None, created_at=utc_now())
-    u_super  = User(name="Sara Supervisor", email="sara@example.com", role="supervisor", area_id=None, created_at=utc_now())
-    for user in (u_worker, u_coord, u_super):
-        user.set_password("demo")
-    db.session.add_all([u_worker, u_coord, u_super])
-    db.session.commit()
-    click.echo(f"[OK] Core demo seeded. building_id={b.building_id}, area_id={a.area_id}, users={[u_worker.user_id, u_coord.user_id, u_super.user_id]}")
-
-# ---- 3) Tiny smoke test: make one request using the first 2 items
+# ---- 2) Tiny smoke test: make one request using the first 2 items
 @click.command("seed-sample-request")
 @with_appcontext
 def seed_sample_request():
@@ -280,7 +260,7 @@ def seed_portfolio_demo_day():
         SnowLog.query.delete()
 
         bob = users_by_name["Bob Coordinator"]
-        away_names = {"Alex Parker", "Quinn Bailey", "Peyton Ward"}
+        away_names = {"Gabriel", "Emely", "Christ"}
         workers = User.query.filter_by(role="worker").order_by(User.user_id).all()
         db.session.add_all([
             AttendanceRecord(
@@ -298,13 +278,13 @@ def seed_portfolio_demo_day():
         assignment = Assignment(
             assignment_date=today,
             assignment_type="Coverage",
-            location_task="Tache West Floors 1-2 coverage",
+            location_task="Tache West Lower coverage",
             note="Morning coverage",
-            destination_area_id=areas_by_name["Tache West Floors 1-2"].area_id,
+            destination_area_id=areas_by_name["Tache West Lower"].area_id,
             created_by_user_id=bob.user_id,
             created_at=now,
         )
-        assignment.workers = [users_by_name["Jordan Lee"]]
+        assignment.workers = [users_by_name["Bryan"]]
         db.session.add(assignment)
 
         db.session.add(Event(
@@ -320,15 +300,15 @@ def seed_portfolio_demo_day():
 
         request_specs = [
             (
-                "Morgan Reed",
-                "Tache West Floors 3-4",
+                "Jennifer",
+                "Tache West Upper",
                 "Submitted",
                 now - timedelta(minutes=45),
                 (("Demo Floor Cleaner", 2), ("Demo Microfiber Cloth", 6)),
             ),
             (
-                "Casey Morgan",
-                "Plant Science Floors 3-5",
+                "Dora",
+                "Plant Science Upper",
                 "Completed",
                 now - timedelta(hours=2),
                 (("Demo Paper Towels", 4), ("Demo Hand Soap", 2)),
@@ -350,21 +330,21 @@ def seed_portfolio_demo_day():
 
         snow_log_specs = [
             (
-                "Jordan Lee",
+                "Bryan",
                 "Physical Plant Entrances and Walkways",
                 "Cleared entrances and applied ice melt.",
                 "Light snow with isolated icy patches.",
                 90,
             ),
             (
-                "Casey Morgan",
+                "Dora",
                 "Plant Science Staff Entrance Walkway",
                 "Shovelled walkway and treated steps.",
                 "Walkway clear and passable.",
                 60,
             ),
             (
-                "Taylor Brooks",
+                "Alex",
                 "Art Barn Loading Area",
                 "Cleared loading access and applied sand.",
                 "Packed snow removed; surface secure.",
@@ -522,7 +502,6 @@ def load_core_data():
 
 def register_cli(app):
     app.cli.add_command(seed_supplies)
-    app.cli.add_command(seed_core_demo)
     app.cli.add_command(seed_sample_request)
     app.cli.add_command(seed_core_data)
     app.cli.add_command(seed_portfolio_demo_day)

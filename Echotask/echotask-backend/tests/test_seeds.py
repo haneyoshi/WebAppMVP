@@ -85,31 +85,24 @@ class SeedCommandTestCase(unittest.TestCase):
             self.assertEqual(
                 [area.area_name for area in Area.query.order_by(Area.area_id)],
                 [
-                    "Office, Stores, and Power House",
-                    "Plant Science Floors 3-5",
-                    "Plant Science Lower Floors and Art Barn",
-                    "Tache West Floors 1-2", "Tache West Floors 3-4",
-                    "Tache East Floors 1-2", "Tache East Floors 3-4",
-                    "Art Lab Basement and Floor 3", "Art Lab Floors 1-2",
-                    "Tier Floors 1-2", "Tier Floors 3-4",
-                    "Isbister Floors 1-2", "Isbister Floors 4-5",
-                    "Fletcher Argue Floors 1-2",
-                    "Elizabeth Dafoe Library Floor 1",
-                    "Elizabeth Dafoe Library Floor 2",
-                    "Elizabeth Dafoe Library Floor 3",
-                    "Administration Building", "Drake Basement",
-                    "Drake Floor 1", "Drake Floor 2", "Drake Floors 3-4",
+                    "Physical Plant Main", "Plant Science Upper",
+                    "Plant Science Lower and Art Barn", "Tache West Lower",
+                    "Tache West Upper", "Tache East Lower", "Tache East Upper",
+                    "Art Lab Upper and Basement", "Art Lab Lower", "Tier Lower",
+                    "Tier Upper", "Isbister Lower", "Isbister Upper",
+                    "Fletcher Argue Main", "Library 1st Floor",
+                    "Library 2nd Floor", "Library 3rd Floor",
+                    "Administration Main", "Drake Basement", "Drake First Floor",
+                    "Drake Second Floor", "Drake Upper Floors",
                 ],
             )
             self.assertEqual(
                 [user.name for user in User.query.filter_by(role="worker").order_by(User.user_id)],
                 [
-                    "Jordan Lee", "Casey Morgan", "Taylor Brooks", "Alex Parker",
-                    "Morgan Reed", "Riley Chen", "Cameron Ellis", "Avery Patel",
-                    "Jamie Foster", "Quinn Bailey", "Rowan Mitchell", "Skyler Nguyen",
-                    "Dakota Hughes", "Reese Sullivan", "Emerson Clark", "Finley Ross",
-                    "Hayden Murphy", "Peyton Ward", "Charlie Bennett", "Robin Turner",
-                    "Samira Khan", "Devon Price",
+                    "Bryan", "Dora", "Alex", "Gabriel", "Jennifer", "Natalie",
+                    "Alexia", "Diane", "Pam", "Emely", "Priamo", "Ken", "Yang",
+                    "Moo", "Patricia", "Ein", "Glend", "Christ", "Yoa", "Rosana",
+                    "Mit", "John",
                 ],
             )
             self.assertEqual(
@@ -199,9 +192,9 @@ class SeedCommandTestCase(unittest.TestCase):
         app, runner, portfolio_path = self._portfolio_app()
         with app.app_context():
             bob = User.query.filter_by(name="Bob Coordinator").one()
-            jordan = User.query.filter_by(name="Jordan Lee").one()
+            bryan = User.query.filter_by(name="Bryan").one()
             db.session.add(AttendanceRecord(
-                user_id=jordan.user_id,
+                user_id=bryan.user_id,
                 attendance_date=date.today(),
                 present=True,
                 status="Working",
@@ -272,21 +265,21 @@ class SeedCommandTestCase(unittest.TestCase):
             self.assertTrue(all(row.marked_by_user_id == bob.user_id for row in attendance))
             away_names = {row.user.name for row in attendance if row.status == "Away"}
             self.assertEqual(away_names, {
-                "Alex Parker", "Quinn Bailey", "Peyton Ward",
+                "Gabriel", "Emely", "Christ",
             })
 
-            jordan = User.query.filter_by(name="Jordan Lee").one()
-            jordan_attendance = AttendanceRecord.query.filter_by(
-                user_id=jordan.user_id
+            bryan = User.query.filter_by(name="Bryan").one()
+            bryan_attendance = AttendanceRecord.query.filter_by(
+                user_id=bryan.user_id
             ).one()
-            self.assertEqual(jordan_attendance.status, "Working")
+            self.assertEqual(bryan_attendance.status, "Working")
             assignment = Assignment.query.one()
             self.assertEqual(assignment.assignment_date, date.today())
             self.assertEqual(assignment.assignment_type, "Coverage")
-            self.assertEqual(assignment.location_task, "Tache West Floors 1-2 coverage")
+            self.assertEqual(assignment.location_task, "Tache West Lower coverage")
             self.assertEqual(assignment.note, "Morning coverage")
-            self.assertEqual(assignment.destination_area.area_name, "Tache West Floors 1-2")
-            self.assertEqual([worker.name for worker in assignment.workers], ["Jordan Lee"])
+            self.assertEqual(assignment.destination_area.area_name, "Tache West Lower")
+            self.assertEqual([worker.name for worker in assignment.workers], ["Bryan"])
             self.assertEqual(assignment.created_by_user_id, bob.user_id)
 
             event = Event.query.one()
@@ -301,7 +294,7 @@ class SeedCommandTestCase(unittest.TestCase):
             }
             submitted = requests_by_status["Submitted"]
             self.assertEqual((submitted.user.name, submitted.area.area_name), (
-                "Morgan Reed", "Tache West Floors 3-4",
+                "Jennifer", "Tache West Upper",
             ))
             self.assertEqual(
                 {line.item.item_name: line.quantity for line in submitted.items},
@@ -309,7 +302,7 @@ class SeedCommandTestCase(unittest.TestCase):
             )
             completed = requests_by_status["Completed"]
             self.assertEqual((completed.user.name, completed.area.area_name), (
-                "Casey Morgan", "Plant Science Floors 3-5",
+                "Dora", "Plant Science Upper",
             ))
             self.assertEqual(
                 {line.item.item_name: line.quantity for line in completed.items},
@@ -318,21 +311,21 @@ class SeedCommandTestCase(unittest.TestCase):
 
             logs_by_worker = {log.user.name: log for log in SnowLog.query.all()}
             self.assertEqual(set(logs_by_worker), {
-                "Jordan Lee", "Casey Morgan", "Taylor Brooks",
+                "Bryan", "Dora", "Alex",
             })
             self.assertEqual(
-                logs_by_worker["Jordan Lee"].location.location_name,
+                logs_by_worker["Bryan"].location.location_name,
                 "Physical Plant Entrances and Walkways",
             )
             self.assertEqual(
-                logs_by_worker["Casey Morgan"].location.location_name,
+                logs_by_worker["Dora"].location.location_name,
                 "Plant Science Staff Entrance Walkway",
             )
             self.assertEqual(
-                logs_by_worker["Taylor Brooks"].location.location_name,
+                logs_by_worker["Alex"].location.location_name,
                 "Art Barn Loading Area",
             )
-            expected_minutes = {"Jordan Lee": 90, "Casey Morgan": 60, "Taylor Brooks": 30}
+            expected_minutes = {"Bryan": 90, "Dora": 60, "Alex": 30}
             for worker_name, minutes in expected_minutes.items():
                 timestamp = logs_by_worker[worker_name].timestamp
                 self.assertTrue(
