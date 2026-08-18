@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 
 from app import create_app, db
 from app.models import User
@@ -42,10 +42,22 @@ class SchemaUpgradeTestCase(unittest.TestCase):
                 request_date DATETIME,
                 status VARCHAR
             );
+            CREATE TABLE assignments (
+                assignment_id INTEGER PRIMARY KEY,
+                assignment_date DATE NOT NULL,
+                assignment_type VARCHAR NOT NULL,
+                location_task VARCHAR NOT NULL,
+                note TEXT,
+                created_by_user_id INTEGER NOT NULL REFERENCES users(user_id),
+                created_at DATETIME
+            );
             INSERT INTO buildings VALUES (1, 'Building', NULL);
             INSERT INTO areas VALUES (1, 'Area', NULL, 1, NULL);
             INSERT INTO users VALUES (
                 1, 'Worker', 'worker@example.com', 'demo', 'worker', 1, NULL
+            );
+            INSERT INTO assignments VALUES (
+                1, '2026-08-17', 'Coverage', 'North entrance', NULL, 1, NULL
             );
         """)
         connection.commit()
@@ -75,6 +87,13 @@ class SchemaUpgradeTestCase(unittest.TestCase):
                 column["name"] for column in inspector.get_columns("supply_requests")
             })
             self.assertIn("assignments", inspector.get_table_names())
+            self.assertIn("destination_area_id", {
+                column["name"] for column in inspector.get_columns("assignments")
+            })
+            destination_area_id = db.session.execute(
+                text("SELECT destination_area_id FROM assignments WHERE assignment_id = 1")
+            ).scalar_one()
+            self.assertIsNone(destination_area_id)
             user = db.session.get(User, 1)
             self.assertNotEqual(user.password_hash, "demo")
             self.assertTrue(user.check_password("demo"))

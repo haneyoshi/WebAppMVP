@@ -25,17 +25,59 @@ All other API endpoints require the session cookie returned by login.
 
 ## Development data
 
-Seed commands use `demo` as the development password, but store only its Werkzeug
-hash.
+`seed-core-data` is the canonical base demo reset. It creates a real-world-inspired
+caretaking structure with 10 named buildings and 22 named areas, 22 fictionally
+named demo workers with one regular worker per area, the two management accounts
+below, and a small deterministic set of active Snow Log locations. It does not
+create attendance, assignments, events, Snow Log submissions, supply requests,
+or supply items.
 
-The CSV core-data seed creates `bob@example.com` (coordinator) and
-`sara@example.com` (supervisor), both with the development password `demo`.
+All canonical accounts use the development password `demo`, stored only as a
+Werkzeug hash:
+
+- `bob@example.com` — coordinator
+- `sara@example.com` — supervisor
+- `user1@example.com` through `user22@example.com` — workers
+
+For a safe fresh demo, run these commands in order:
 
 ```powershell
-flask seed-core-demo
+flask seed-core-data
 flask seed-supplies --csv-path Supply_Item_List.csv
-flask seed-sample-request
 ```
+
+To build a separate portfolio database without touching the default development
+database, set `DATABASE_URL` only for the seeding session:
+
+```powershell
+$env:DATABASE_URL = "sqlite:///instance/echotask-portfolio.db"
+flask seed-core-data
+flask seed-supplies --csv-path Supply_Item_List.csv
+flask seed-portfolio-demo-day
+Remove-Item Env:DATABASE_URL
+```
+
+The resulting ignored local file is `instance/echotask-portfolio.db`. Start Flask
+with the same `DATABASE_URL` value when using that database for portfolio demos.
+Removing the override returns later Flask commands to the normal configured
+development database.
+
+`seed-portfolio-demo-day` is only for that dedicated portfolio database and does
+not replace the canonical `seed-core-data` plus `seed-supplies` setup. It verifies
+the exact portfolio database path and canonical dataset before replacing the
+demo-day attendance, assignments, events, supply requests, and Snow Logs. It
+preserves buildings, areas, accounts, Snow Log locations, and the supply catalog,
+and refuses to run against the normal development database.
+
+`seed-core-data` is destructive to the core and operational tables it resets.
+Do not run it against records that need to be preserved. Supply-item seeding is
+intentionally separate; `seed-supplies` adds missing catalog items and skips
+duplicates.
+
+`seed-core-demo` remains available only as a legacy, additive, minimal smoke-data
+helper. It is not the canonical reset path and its accounts are not the canonical
+demo accounts. `seed-sample-request` is also optional and creates operational
+sample data, so it is not part of the fresh-demo sequence.
 
 For a database created by the earlier MVP schema, run the explicit upgrade once:
 
@@ -71,7 +113,7 @@ Supply-request statuses are `Submitted` and `Completed`.
 | Users | `GET /users`, `GET /users/<id>`, supervisor account create/update/deactivate |
 | Availability | `GET /workers/availability?date=YYYY-MM-DD` |
 | Attendance | worker `POST /attendance/check-in`; official `GET/POST/PATCH /attendance...` |
-| Assignments | `GET /assignments`; coordinator/supervisor `POST` and `PUT` |
+| Assignments | `GET /assignments`; coordinator/supervisor `POST`, `PUT`, and `DELETE` |
 | Supplies | `GET /supplies/items`, `GET/POST /supplies/requests`, status and summary routes |
 | Snow | `/snow-log-locations` and `/snow-logs` list/detail/create/management routes |
 | Events | `/events` list/detail/create/update/delete routes |
