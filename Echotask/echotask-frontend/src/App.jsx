@@ -3,10 +3,13 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import { getCurrentUser, login, logout } from './api/session'
 import AppShell from './components/AppShell'
+import AssignmentsPage from './pages/AssignmentsPage'
+import AccountsPage from './pages/AccountsPage'
 import AttendancePage from './pages/AttendancePage'
 import DashboardPage from './pages/DashboardPage'
+import EventsPage from './pages/EventsPage'
 import LoginPage from './pages/LoginPage'
-import PlaceholderPage from './pages/PlaceholderPage'
+import SnowLogsPage from './pages/SnowLogsPage'
 import SuppliesRequestPage from './pages/SuppliesRequestPage'
 
 function App() {
@@ -58,11 +61,14 @@ function App() {
       <Route element={<AppShell user={user} onLogout={handleLogout} />}>
         <Route index element={<DashboardPage user={user} />} />
         <Route path="attendance" element={<AttendancePage user={user} />} />
-        <Route path="supplies" element={<SuppliesRequestPage />} />
-        <Route path="snow-logs" element={<PlaceholderPage title="Snow Logs" />} />
-        <Route path="events" element={<PlaceholderPage title="Events" />} />
+        {(user.role === 'coordinator' || user.role === 'supervisor') && (
+          <Route path="assignments" element={<AssignmentsPage />} />
+        )}
+        <Route path="supplies" element={<SuppliesRequestPage user={user} />} />
+        <Route path="snow-logs" element={<SnowLogsPage user={user} />} />
+        <Route path="events" element={<EventsPage user={user} />} />
         {user.role === 'supervisor' && (
-          <Route path="accounts" element={<PlaceholderPage title="Accounts" />} />
+          <Route path="accounts" element={<AccountsPage currentUser={user} />} />
         )}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

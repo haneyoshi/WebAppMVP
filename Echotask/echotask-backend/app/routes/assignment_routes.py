@@ -155,3 +155,17 @@ def update_assignment(assignment_id):
         setattr(assignment, field_name, value)
     db.session.commit()
     return jsonify(_serialize_assignment(assignment))
+
+
+@assignments_bp.route("/<int:assignment_id>", methods=["DELETE"])
+@roles_required("coordinator", "supervisor")
+def delete_assignment(assignment_id):
+    assignment = db.session.get(Assignment, assignment_id)
+    if not assignment:
+        return jsonify({"error": "Assignment not found"}), 404
+    db.session.delete(assignment)
+    db.session.commit()
+    return jsonify({
+        "message": "Assignment deleted",
+        "assignment_id": assignment_id,
+    })

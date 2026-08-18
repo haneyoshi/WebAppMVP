@@ -55,12 +55,59 @@ class EventApiTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         body = response.get_json()
         self.assertEqual(body["title"], "Staff Meeting")
-        self.assertEqual(body["start_time"], "2026-08-01T14:00:00")
+        self.assertEqual(body["start_time"], "2026-08-01T14:00:00Z")
+        self.assertEqual(body["end_time"], "2026-08-01T15:00:00Z")
 
         event_id = body["event_id"]
-        self.assertEqual(self.client.get(f"/events/{event_id}").status_code, 200)
+        detail = self.client.get(f"/events/{event_id}")
+        self.assertEqual(detail.status_code, 200)
+        self.assertEqual(detail.get_json()["start_time"], "2026-08-01T14:00:00Z")
         listed = self.client.get(f"/events?building_id={self.building_id}")
         self.assertEqual(len(listed.get_json()), 1)
+        self.assertEqual(listed.get_json()[0]["end_time"], "2026-08-01T15:00:00Z")
+
+    def test_event_accepts_positive_offset_and_z_input(self):
+        payload = self._valid_payload()
+        payload["start_time"] = "2026-08-01T16:00:00+02:00"
+        payload["end_time"] = "2026-08-01T15:30:00Z"
+
+        response = self.client.post("/events", json=payload)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.get_json()["start_time"], "2026-08-01T14:00:00Z")
+        self.assertEqual(response.get_json()["end_time"], "2026-08-01T15:30:00Z")
+
+    def test_event_rejects_offset_free_timestamps(self):
+        payload = self._valid_payload()
+        payload["start_time"] = "2026-08-01T14:00:00"
+        response = self.client.post("/events", json=payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.get_json(),
+            {"error": "start_time must include a timezone offset"},
+        )
+
+        event_id = self.client.post("/events", json=self._valid_payload()).get_json()["event_id"]
+        response = self.client.patch(
+            f"/events/{event_id}",
+            json={"end_time": "2026-08-01T16:00:00"},
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.get_json(),
+            {"error": "end_time must include a timezone offset"},
+        )
+
+    def test_event_compares_range_after_utc_normalization(self):
+        payload = self._valid_payload()
+        payload["start_time"] = "2026-08-01T10:00:00+02:00"
+        payload["end_time"] = "2026-08-01T08:30:00Z"
+
+        response = self.client.post("/events", json=payload)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.get_json()["start_time"], "2026-08-01T08:00:00Z")
+        self.assertEqual(response.get_json()["end_time"], "2026-08-01T08:30:00Z")
 
     def test_event_rejects_invalid_time_range(self):
         payload = self._valid_payload()
@@ -97,16 +144,26 @@ class EventApiTestCase(unittest.TestCase):
 
     def test_coordinator_can_edit_and_delete_event(self):
         event_id = self.client.post("/events", json=self._valid_payload()).get_json()["event_id"]
-        updated = self.client.patch(f"/events/{event_id}", json={"title": "Updated"})
+        updated = self.client.patch(
+            f"/events/{event_id}",
+            json={"title": "Updated", "start_time": "2026-08-01T14:30:00Z"},
+        )
         self.assertEqual(updated.status_code, 200)
         self.assertEqual(updated.get_json()["title"], "Updated")
+        self.assertEqual(updated.get_json()["start_time"], "2026-08-01T14:30:00Z")
         self.assertEqual(self.client.delete(f"/events/{event_id}").status_code, 200)
         self.assertEqual(self.client.get(f"/events/{event_id}").status_code, 404)
 
     def test_worker_can_view_but_not_manage_events(self):
+        event_id = self.client.post("/events", json=self._valid_payload()).get_json()["event_id"]
         self.login("worker@example.com")
         self.assertEqual(self.client.get("/events").status_code, 200)
         self.assertEqual(self.client.post("/events", json=self._valid_payload()).status_code, 403)
+        self.assertEqual(
+            self.client.patch(f"/events/{event_id}", json={"title": "Forbidden"}).status_code,
+            403,
+        )
+        self.assertEqual(self.client.delete(f"/events/{event_id}").status_code, 403)
 
     def test_events_require_authentication(self):
         self.client.post("/auth/logout")

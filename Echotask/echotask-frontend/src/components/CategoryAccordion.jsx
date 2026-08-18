@@ -1,6 +1,7 @@
 import React from "react";
 
-function CategoryAccordion({isFolded, setIsFolded, label, children}){
+function CategoryAccordion({label, children}){
+    const [isFolded, setIsFolded] = React.useState(true);
     const toggleFold = () => setIsFolded(!isFolded);
 
     return(

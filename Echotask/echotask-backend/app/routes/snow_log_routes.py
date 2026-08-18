@@ -1,3 +1,5 @@
+from datetime import timezone
+
 from flask import Blueprint, jsonify, request
 
 from app import db
@@ -33,6 +35,16 @@ def _serialize_location(location):
     }
 
 
+def _serialize_utc_timestamp(value):
+    if value is None:
+        return None
+    if value.tzinfo is None or value.utcoffset() is None:
+        value = value.replace(tzinfo=timezone.utc)
+    else:
+        value = value.astimezone(timezone.utc)
+    return value.isoformat().replace("+00:00", "Z")
+
+
 def _serialize_log(log):
     return {
         "snow_log_id": log.snow_log_id,
@@ -44,7 +56,7 @@ def _serialize_log(log):
         "area_name": log.location.area.area_name,
         "action_taken": log.action_taken,
         "condition": log.condition,
-        "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+        "timestamp": _serialize_utc_timestamp(log.timestamp),
     }
 
 

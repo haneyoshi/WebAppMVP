@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 
 from app import create_app, db
 from app.models import Area, Building, SnowLog, SnowLogLocation, User
@@ -58,11 +59,33 @@ class SnowLogApiTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.get_json()["action_taken"], "Salted walkway")
         self.assertEqual(response.get_json()["area_name"], "Test Area")
+        self.assertTrue(response.get_json()["timestamp"].endswith("Z"))
 
         self.login("coordinator@example.com")
         listed = self.client.get(f"/snow-logs?user_id={self.user_id}")
         self.assertEqual(listed.status_code, 200)
         self.assertEqual(len(listed.get_json()), 1)
+        self.assertTrue(listed.get_json()[0]["timestamp"].endswith("Z"))
+
+    def test_snow_log_timestamp_is_explicit_utc_in_detail_and_history(self):
+        with self.app.app_context():
+            log = SnowLog(
+                user_id=self.user_id,
+                snow_log_location_id=self.location_id,
+                timestamp=datetime(2026, 1, 15, 18, 45, 30),
+            )
+            db.session.add(log)
+            db.session.commit()
+            log_id = log.snow_log_id
+
+        self.login("coordinator@example.com")
+        detail = self.client.get(f"/snow-logs/{log_id}")
+        history = self.client.get("/snow-logs")
+
+        self.assertEqual(detail.status_code, 200)
+        self.assertEqual(detail.get_json()["timestamp"], "2026-01-15T18:45:30Z")
+        self.assertEqual(history.status_code, 200)
+        self.assertEqual(history.get_json()[0]["timestamp"], "2026-01-15T18:45:30Z")
 
     def test_create_location_and_filter_by_area(self):
         self.login("coordinator@example.com")

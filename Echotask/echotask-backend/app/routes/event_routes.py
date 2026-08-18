@@ -19,9 +19,13 @@ def _parse_datetime(value, field_name):
         parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
     except ValueError:
         return None, f"{field_name} must be an ISO-8601 datetime"
-    if parsed.tzinfo is not None:
-        parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
-    return parsed, None
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        return None, f"{field_name} must include a timezone offset"
+    return parsed.astimezone(timezone.utc).replace(tzinfo=None), None
+
+
+def _serialize_utc_datetime(value):
+    return value.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _serialize_event(event):
@@ -31,8 +35,8 @@ def _serialize_event(event):
         "building_name": event.building.building_name,
         "title": event.title,
         "description": event.description,
-        "start_time": event.start_time.isoformat(),
-        "end_time": event.end_time.isoformat(),
+        "start_time": _serialize_utc_datetime(event.start_time),
+        "end_time": _serialize_utc_datetime(event.end_time),
         "created_by_user_id": event.created_by_user_id,
         "created_by_name": event.created_by.name,
     }

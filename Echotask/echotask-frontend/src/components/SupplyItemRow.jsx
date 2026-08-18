@@ -1,9 +1,9 @@
 // components/SupplyItemRow.jsx
-function SupplyItemRow({ itemName, quantity, onQuantityChange  }) {
+function SupplyItemRow({ itemId, itemName, quantity, onQuantityChange, disabled }) {
 
   // Increment and decrement, any changes will inform the parent
-   const increment = () => onQuantityChange(itemName, quantity + 1);
-  const decrement = () => onQuantityChange(itemName, Math.max(0, quantity - 1));
+  const increment = () => onQuantityChange(itemId, quantity + 1);
+  const decrement = () => onQuantityChange(itemId, Math.max(0, quantity - 1));
 
 
   return (
@@ -33,7 +33,9 @@ function SupplyItemRow({ itemName, quantity, onQuantityChange  }) {
         }}
       >
         <button
+          type="button"
           onClick={decrement}
+          disabled={disabled || quantity === 0}
           style={{
             width: "30px",
             height: "30px",
@@ -58,7 +60,9 @@ function SupplyItemRow({ itemName, quantity, onQuantityChange  }) {
         </span>
 
         <button
+          type="button"
           onClick={increment}
+          disabled={disabled}
           style={{
             width: "30px",
             height: "30px",

@@ -9,9 +9,13 @@ const navigation = [
 ]
 
 function AppShell({ user, onLogout }) {
-  const links = user.role === 'supervisor'
-    ? [...navigation, { to: '/accounts', label: 'Accounts' }]
-    : navigation
+  const canManageAssignments = user.role === 'coordinator' || user.role === 'supervisor'
+  const links = [
+    ...navigation.slice(0, 2),
+    ...(canManageAssignments ? [{ to: '/assignments', label: 'Assignments' }] : []),
+    ...navigation.slice(2),
+    ...(user.role === 'supervisor' ? [{ to: '/accounts', label: 'Accounts' }] : []),
+  ]
 
   return (
     <div className="app-shell">

@@ -2,7 +2,14 @@ import unittest
 from datetime import date
 
 from app import create_app, db
-from app.models import Area, AttendanceRecord, Building, User
+from app.models import (
+    Area,
+    Assignment,
+    AttendanceRecord,
+    Building,
+    User,
+    assignment_workers,
+)
 
 
 class AssignmentAndAvailabilityApiTestCase(unittest.TestCase):
@@ -33,6 +40,7 @@ class AssignmentAndAvailabilityApiTestCase(unittest.TestCase):
                 ("Worker One", "worker", areas[0]),
                 ("Worker Two", "worker", areas[1]),
                 ("Coordinator", "coordinator", None),
+                ("Supervisor", "supervisor", None),
             ):
                 user = User(
                     name=name,
@@ -137,6 +145,103 @@ class AssignmentAndAvailabilityApiTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.get_json()["error"], "destination_area_id 999 not found")
+
+    def test_coordinator_deletes_assignment_and_worker_associations(self):
+        self.login("Coordinator")
+        created = self.client.post("/assignments", json=self.payload()).get_json()
+        assignment_id = created["assignment_id"]
+
+        deleted = self.client.delete(f"/assignments/{assignment_id}")
+
+        self.assertEqual(deleted.status_code, 200)
+        self.assertEqual(deleted.get_json(), {
+            "message": "Assignment deleted",
+            "assignment_id": assignment_id,
+        })
+        self.assertEqual(
+            self.client.get(f"/assignments/{assignment_id}").status_code,
+            404,
+        )
+        with self.app.app_context():
+            association_count = db.session.execute(
+                db.select(db.func.count()).select_from(assignment_workers).where(
+                    assignment_workers.c.assignment_id == assignment_id
+                )
+            ).scalar_one()
+            self.assertEqual(association_count, 0)
+            self.assertIsNone(db.session.get(Assignment, assignment_id))
+
+    def test_assignment_deletion_restores_attendance_availability(self):
+        with self.app.app_context():
+            db.session.add(AttendanceRecord(
+                user_id=self.users["Worker One"],
+                attendance_date=date.today(),
+                present=True,
+                status="Working",
+            ))
+            db.session.commit()
+        self.login("Coordinator")
+        payload = self.payload()
+        payload["destination_area_id"] = self.areas["Area Two"]
+        assignment_id = self.client.post(
+            "/assignments", json=payload
+        ).get_json()["assignment_id"]
+
+        before = {
+            row["name"]: row
+            for row in self.client.get("/workers/availability").get_json()
+        }
+        self.assertEqual(before["Worker One"]["status"], "Assigned elsewhere")
+        self.assertEqual(before["Worker Two"]["status"], "Assigned elsewhere")
+        self.assertEqual(len(before["Worker One"]["assignments"]), 1)
+        self.assertEqual(len(before["Worker Two"]["assignments"]), 1)
+
+        self.client.delete(f"/assignments/{assignment_id}")
+
+        after = {
+            row["name"]: row
+            for row in self.client.get("/workers/availability").get_json()
+        }
+        self.assertEqual(after["Worker One"]["assignments"], [])
+        self.assertEqual(after["Worker One"]["status"], "Working")
+        self.assertEqual(after["Worker Two"]["assignments"], [])
+        self.assertEqual(after["Worker Two"]["status"], "Away")
+
+    def test_supervisor_can_delete_assignment(self):
+        self.login("Coordinator")
+        assignment_id = self.client.post(
+            "/assignments", json=self.payload()
+        ).get_json()["assignment_id"]
+        self.login("Supervisor")
+
+        self.assertEqual(
+            self.client.delete(f"/assignments/{assignment_id}").status_code,
+            200,
+        )
+
+    def test_assignment_deletion_authorization_and_missing_error(self):
+        self.login("Coordinator")
+        assignment_id = self.client.post(
+            "/assignments", json=self.payload()
+        ).get_json()["assignment_id"]
+
+        self.login("Worker One")
+        self.assertEqual(
+            self.client.delete(f"/assignments/{assignment_id}").status_code,
+            403,
+        )
+        unauthenticated_client = self.app.test_client()
+        self.assertEqual(
+            unauthenticated_client.delete(
+                f"/assignments/{assignment_id}"
+            ).status_code,
+            401,
+        )
+
+        self.login("Coordinator")
+        missing = self.client.delete("/assignments/999")
+        self.assertEqual(missing.status_code, 404)
+        self.assertEqual(missing.get_json(), {"error": "Assignment not found"})
 
     def test_worker_can_view_but_not_manage_assignments(self):
         self.login("Worker One")
