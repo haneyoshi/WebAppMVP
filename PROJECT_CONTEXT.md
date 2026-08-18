@@ -92,6 +92,17 @@ shown. Frontend lint, production build, and `git diff --check` pass. The focused
 availability backend test could not run in the available system Python because
 Flask is not installed; no backend files or behavior changed.
 
+The **Structured Assignment Destination** backend milestone is complete.
+Temporary assignments now have an optional nullable `destination_area_id` that
+references an existing EchoTask area. Free-form assignments remain valid with
+`destination_area_id = NULL`; `location_task` remains required and is never
+matched to an area implicitly. Assignment create/read/update responses and
+nested worker-availability assignments expose the destination area/building IDs
+and names as flat fields. The existing SQLite `upgrade-schema` command adds the
+nullable column without removing legacy assignment rows. Focused assignment,
+availability, and schema-upgrade tests pass in the backend `.venv` (11 tests),
+and `git diff --check` passes.
+
 ## Important backend and UI constraints
 
 - Authentication is server-side session based: `POST /auth/login`,
@@ -133,7 +144,7 @@ Flask is not installed; no backend files or behavior changed.
 
 ## Next action
 
-Continue with the next smallest Dashboard slice: a read-only **Today's Events**
-reminder surface for coordinator and supervisor users, using the existing event
-API and preserving the simple worker dashboard unless product requirements call
-for worker visibility.
+Inspect and implement the smallest read-only **Today's Area Coverage** Dashboard
+slice using structured assignment destinations. Keep free-form assignments
+distinct, preserve availability precedence and dashboard privacy, and do not
+infer area identity from `location_task`.

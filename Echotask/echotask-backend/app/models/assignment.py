@@ -27,10 +27,14 @@ class Assignment(db.Model):
     assignment_type = db.Column(db.String, nullable=False)
     location_task = db.Column(db.String, nullable=False)
     note = db.Column(db.Text, nullable=True)
+    destination_area_id = db.Column(
+        db.Integer, db.ForeignKey("areas.area_id"), nullable=True
+    )
     created_by_user_id = db.Column(
         db.Integer, db.ForeignKey("users.user_id"), nullable=False
     )
     created_at = db.Column(db.DateTime, default=utc_now)
 
     created_by = db.relationship("User", foreign_keys=[created_by_user_id])
+    destination_area = db.relationship("Area")
     workers = db.relationship("User", secondary=assignment_workers)

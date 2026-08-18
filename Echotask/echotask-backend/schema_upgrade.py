@@ -41,6 +41,9 @@ def upgrade_schema():
         "snow_log_locations": [
             ("is_active", "BOOLEAN NOT NULL DEFAULT 1"),
         ],
+        "assignments": [
+            ("destination_area_id", "INTEGER REFERENCES areas(area_id)"),
+        ],
     }
     for table_name, columns in additive_columns.items():
         if table_name not in tables:

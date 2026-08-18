@@ -24,6 +24,10 @@ class AssignmentAndAvailabilityApiTestCase(unittest.TestCase):
             ]
             db.session.add_all(areas)
             db.session.flush()
+            self.areas = {
+                area.area_name: area.area_id
+                for area in areas
+            }
             self.users = {}
             for name, role, area in (
                 ("Worker One", "worker", areas[0]),
@@ -79,6 +83,61 @@ class AssignmentAndAvailabilityApiTestCase(unittest.TestCase):
         self.assertEqual(updated.get_json()["location_task"], "South entrance")
         self.assertEqual(len(updated.get_json()["workers"]), 1)
 
+    def test_assignment_supports_structured_destination(self):
+        self.login("Coordinator")
+        payload = self.payload()
+        payload["destination_area_id"] = self.areas["Area Two"]
+
+        created = self.client.post("/assignments", json=payload)
+
+        self.assertEqual(created.status_code, 201)
+        assignment = created.get_json()
+        self.assertEqual(assignment["destination_area_id"], self.areas["Area Two"])
+        self.assertEqual(assignment["destination_area_name"], "Area Two")
+        self.assertEqual(assignment["destination_building_name"], "Test Building")
+
+        listed = self.client.get("/assignments").get_json()
+        self.assertEqual(listed[0]["destination_area_id"], self.areas["Area Two"])
+
+    def test_assignment_update_can_set_and_clear_structured_destination(self):
+        self.login("Coordinator")
+        payload = self.payload()
+        created = self.client.post("/assignments", json=payload).get_json()
+
+        payload["destination_area_id"] = self.areas["Area Two"]
+        updated = self.client.put(
+            f"/assignments/{created['assignment_id']}", json=payload
+        )
+        self.assertEqual(updated.status_code, 200)
+        self.assertEqual(
+            updated.get_json()["destination_area_id"], self.areas["Area Two"]
+        )
+
+        payload["destination_area_id"] = None
+        updated = self.client.put(
+            f"/assignments/{created['assignment_id']}", json=payload
+        )
+        self.assertEqual(updated.status_code, 200)
+        self.assertIsNone(updated.get_json()["destination_area_id"])
+
+    def test_assignment_without_destination_remains_valid(self):
+        self.login("Coordinator")
+        response = self.client.post("/assignments", json=self.payload())
+
+        self.assertEqual(response.status_code, 201)
+        self.assertIsNone(response.get_json()["destination_area_id"])
+        self.assertEqual(response.get_json()["location_task"], "North entrance")
+
+    def test_assignment_rejects_nonexistent_destination_area(self):
+        self.login("Coordinator")
+        payload = self.payload()
+        payload["destination_area_id"] = 999
+
+        response = self.client.post("/assignments", json=payload)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.get_json()["error"], "destination_area_id 999 not found")
+
     def test_worker_can_view_but_not_manage_assignments(self):
         self.login("Worker One")
         self.assertEqual(self.client.get("/assignments").status_code, 200)
@@ -105,15 +164,43 @@ class AssignmentAndAvailabilityApiTestCase(unittest.TestCase):
             ))
             db.session.commit()
         self.login("Coordinator")
-        self.client.post("/assignments", json=self.payload())
+        payload = self.payload()
+        payload["destination_area_id"] = self.areas["Area Two"]
+        self.client.post("/assignments", json=payload)
 
         response = self.client.get("/workers/availability")
         self.assertEqual(response.status_code, 200)
         self.assertEqual({row["status"] for row in response.get_json()}, {"Assigned elsewhere"})
         self.assertTrue(all("absence_reason" not in row for row in response.get_json()))
+        self.assertTrue(all(
+            row["assignments"][0]["destination_area_id"] == self.areas["Area Two"]
+            for row in response.get_json()
+        ))
+        self.assertTrue(all(
+            row["assignments"][0]["destination_area_name"] == "Area Two"
+            for row in response.get_json()
+        ))
 
     def test_availability_requires_authentication(self):
         self.assertEqual(self.client.get("/workers/availability").status_code, 401)
+
+    def test_availability_preserves_attendance_then_away_precedence(self):
+        with self.app.app_context():
+            db.session.add(AttendanceRecord(
+                user_id=self.users["Worker One"],
+                attendance_date=date.today(),
+                present=True,
+                status="Working",
+            ))
+            db.session.commit()
+        self.login("Coordinator")
+
+        response = self.client.get("/workers/availability")
+
+        self.assertEqual(response.status_code, 200)
+        statuses = {row["name"]: row["status"] for row in response.get_json()}
+        self.assertEqual(statuses["Worker One"], "Working")
+        self.assertEqual(statuses["Worker Two"], "Away")
 
 
 if __name__ == "__main__":

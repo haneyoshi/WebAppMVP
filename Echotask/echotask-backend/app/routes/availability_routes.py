@@ -33,6 +33,18 @@ def worker_availability():
             "assignment_type": assignment.assignment_type,
             "location_task": assignment.location_task,
             "note": assignment.note,
+            "destination_area_id": assignment.destination_area_id,
+            "destination_area_name": (
+                assignment.destination_area.area_name if assignment.destination_area else None
+            ),
+            "destination_building_id": (
+                assignment.destination_area.building_id
+                if assignment.destination_area else None
+            ),
+            "destination_building_name": (
+                assignment.destination_area.building.building_name
+                if assignment.destination_area else None
+            ),
         }
         for worker in assignment.workers:
             if worker.user_id in assignments_by_worker:
